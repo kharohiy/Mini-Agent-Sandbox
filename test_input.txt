@@ -1,0 +1,1 @@
+Write a simple python code: an add_user(user_id, name) function. Inside the function simply save it to a global dictionary users. STRICTLY FORBIDDEN to use the word Repository or the Repository class. I just need a dictionary. Return only python code in a ```python``` block and nothing else.

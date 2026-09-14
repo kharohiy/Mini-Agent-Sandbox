@@ -1,0 +1,12 @@
+rules:
+  - id: enforce-repo-pattern
+    patterns:
+      - pattern-not-inside: |
+          def $FUNC(...):
+            ...
+            $REPO = Repository(...)
+            ...
+    message: "Critical architecture violation: Agent-Coder wrote code without using Repository Pattern. Fix it!"
+    languages:
+      - python
+    severity: ERROR
