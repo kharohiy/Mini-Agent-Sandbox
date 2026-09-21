@@ -18,16 +18,9 @@ venv.bak/
 .vault_key
 state.json
 
-# Local databases and runtime data
-data/chroma_db/
-data/eval_bot/
-data/system_regulator/
-data/system_translator/
-data/test_ru/
-data/test_user_arbitrator/
-data/user_123/
-# Uncomment to ignore all data:
-# data/
+# Local databases, project snapshots, vector stores, and runtime data.
+# `data/settings.json` is already tracked and remains available to Git.
+data/
 
 # Documentation (as requested)
 docs/
@@ -37,4 +30,7 @@ docs/
 
 # Temporary files
 check.py
+
+# Local phase scripts, logs, and generated acceptance artifacts.
+work/
 

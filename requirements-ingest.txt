@@ -1,4 +1,4 @@
-pymupdf4llm
-langchain-text-splitters
-chromadb
-litellm
+# Optional PDF ingestion. Inherits the pinned application runtime.
+-r requirements-runtime.txt
+pymupdf4llm==1.28.0
+langchain-text-splitters==1.1.2

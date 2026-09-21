@@ -1,0 +1,8 @@
+# Application runtime: API, project retrieval, local RAG, and vault support.
+litellm==1.89.4
+fastapi==0.128.8
+pydantic==2.12.5
+uvicorn==0.33.0
+chromadb==1.5.9
+cryptography==44.0.3
+flashrank==0.2.10

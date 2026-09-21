@@ -1,0 +1,19 @@
+{
+  "default": "deny",
+  "modes": {
+    "plan_only": {
+      "filesystem": "allow",
+      "network": "deny",
+      "secrets": "deny",
+      "subprocess": "deny",
+      "build_test": "deny"
+    },
+    "validated_execution": {
+      "filesystem": "allow",
+      "network": "deny",
+      "secrets": "deny",
+      "subprocess": "allow",
+      "build_test": "allow"
+    }
+  }
+}

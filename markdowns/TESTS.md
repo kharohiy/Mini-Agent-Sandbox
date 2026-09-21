@@ -1,5 +1,46 @@
 # 🧪 Hardened Evals Pipeline (Test Guidelines)
 
+## Phase 9 cascaded-RAG acceptance — completed 2026-09-20
+
+- The canonical global library has 2,293 chunks; GTA project-code remains 393.
+- `tools:targetApi` retrieval must return
+  `app/src/main/AndroidManifest.xml` as project-code evidence.
+- A global-library hit is technical-reference-only and cannot prove a GTA fact.
+- Real Q&A grounded `tools:targetApi="31"` and the `.MainActivity`
+  `MAIN`/`LAUNCHER` declaration in that manifest.
+- `python -m unittest test_project_retrieval test_project_qa -v` passed 4/4;
+  focused Ruff passed. These checks do not authorize Docker, Gradle,
+  connected-source changes, or automatic RAG knowledge promotion.
+
+## Phase 10 evidence-promotion tests — completed 2026-09-20
+
+## Phase 11 dependency-manifest tests — completed
+
+- Every direct runtime import has a declared runtime dependency.
+- PDF-ingestion-only imports are declared in the ingestion manifest.
+- Development tools are not required for a runtime-only install.
+- The compatible runtime entry point remains documented and testable without
+  resolving packages from the network.
+
+**Completed 2026-09-20:** `test_dependency_manifests.py` verifies runtime
+ownership, ingestion inheritance, and backward-compatible default installation;
+3/3 tests and focused Ruff passed. No dependency resolution or package state
+change occurred.
+
+- Valid same-project `project-code` paths and snapshot/source hashes create a
+  draft only.
+- Global-library, missing, stale, and cross-project evidence are rejected.
+- Draft creation cannot call verification or Chroma synchronization.
+- Only the existing explicit human verification path indexes a verified card.
+- Verified project knowledge remains supplementary and cannot replace a direct
+  project-code source for a GTA fact.
+
+**Completed 2026-09-20:** the focused suite proved valid current project-code
+evidence creates a draft only and rejected global-library, missing, stale, and
+cross-project evidence. Existing sync tests prove verification remains required
+before indexing. Focused Ruff passed; 11 focused knowledge/retrieval/Q&A tests
+passed. No live GTA card was created.
+
 Welcome to the testing guide for **Mini Agent Sandbox**.
 To protect the system against prompt injection, data leaks, and architectural violations, we have implemented a powerful testing pipeline: `evals_pipeline.py`.
 

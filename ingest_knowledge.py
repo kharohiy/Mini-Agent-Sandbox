@@ -2,22 +2,19 @@ import os
 import argparse
 import uuid
 import chromadb
-from litellm import embedding
+from model_router import EmbeddingRequest, get_default_model_router
 import pymupdf4llm
 from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
 
 def get_chroma_client():
-    base_dir = "data"
-    db_path = os.path.join(base_dir, "chroma_db")
+    db_path = os.path.join("data", "knowledge", "global", "chroma_db")
     os.makedirs(db_path, exist_ok=True)
     return chromadb.PersistentClient(path=db_path)
 
 def embed_texts(texts):
     # We use the local Nomic model via Ollama.
-    response = embedding(
-        model="ollama/nomic-embed-text",
-        input=texts,
-        api_base="http://localhost:11434"
+    response = get_default_model_router().embed(
+        EmbeddingRequest(model="ollama/nomic-embed-text", inputs=texts)
     )
     return [item["embedding"] for item in response.data]
 
@@ -35,16 +32,16 @@ def main():
         print(f"Error: File '{pdf_path}' not found.")
         return
 
-    print(f"🚀 Parsing PDF to Markdown via PyMuPDF4LLM: {pdf_path} ...")
+    print(f"Parsing PDF to Markdown via PyMuPDF4LLM: {pdf_path} ...")
     try:
         md_text = pymupdf4llm.to_markdown(pdf_path)
     except Exception as e:
         print(f"Error parsing PDF: {e}")
         return
         
-    print("✅ PDF successfully converted to Markdown.")
+    print("PDF successfully converted to Markdown.")
 
-    print("✂️ Semantic chunking using Markdown headers...")
+    print("Semantic chunking using Markdown headers...")
     headers_to_split_on = [
         ("#", "Header 1"),
         ("##", "Header 2"),
@@ -61,11 +58,11 @@ def main():
     )
 
     splits = text_splitter.split_documents(md_header_splits)
-    print(f"✅ Total text chunks created: {len(splits)}")
+    print(f"Total text chunks created: {len(splits)}")
 
     client = get_chroma_client()
     collection_name = "android_architecture_library"
-    print(f"🗄️ Preparing ChromaDB collection: '{collection_name}'...")
+    print(f"Preparing ChromaDB collection: '{collection_name}'...")
     
     emb_fn = LiteLLMEmbeddingFunction()
     collection = client.get_or_create_collection(
@@ -77,7 +74,7 @@ def main():
     batch_size = 50
     total_batches = (len(splits) - 1) // batch_size + 1
     
-    print("🧬 Vectorizing and inserting chunks (Ollama/nomic-embed-text) ...")
+    print("Vectorizing and inserting chunks (Ollama/nomic-embed-text) ...")
     for i in range(0, len(splits), batch_size):
         batch = splits[i:i+batch_size]
         
@@ -104,7 +101,7 @@ def main():
         except Exception as e:
             print(f"  -> Error inserting batch {i//batch_size + 1}: {e}")
 
-    print("\n🎉 Knowledge ingestion complete! The book is now available in ChromaDB.")
+    print("\nKnowledge ingestion complete! The book is now available in ChromaDB.")
 
 if __name__ == "__main__":
     main()

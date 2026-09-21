@@ -1,3 +1,2 @@
-litellm==1.89.4
-ruff==0.15.20
-semgrep==1.168.0
+# Backward-compatible default entry point: runtime plus existing dev tooling.
+-r requirements-dev.txt

@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+# The executor image pins Gradle 8.7. This thin wrapper deliberately has no
+# downloader, so runtime validation stays offline and cannot fetch code.
+exec gradle "$@"

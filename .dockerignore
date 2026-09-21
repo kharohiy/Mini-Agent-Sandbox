@@ -1,0 +1,14 @@
+.git
+__pycache__/
+*.py[cod]
+.ruff_cache/
+.vault
+.vault_key
+state.json
+data/
+docs/
+.antigravitycli/
+test_*.py
+requirements.txt
+README.md
+NEXT_STEPS_PLAN.md

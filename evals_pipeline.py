@@ -3,6 +3,7 @@ import os
 import sys
 from data_guardrail import guardrail
 from runner import safe_llm_completion, load_json, ROLES_FILE, unload_ollama_models
+from model_router import TaskClass
 
 def load_tests():
     path = os.path.join("tests", "adversarial_prompts.json")
@@ -68,7 +69,7 @@ def run_evals():
         
         print("Evaluating LLM response...")
         try:
-            response = safe_llm_completion("ollama/qwen2.5:14b", messages, user_id="eval_bot")
+            response = safe_llm_completion("ollama/qwen2.5:14b", messages, user_id="eval_bot", task_class=TaskClass.REVIEW)
             content = response.choices[0].message.content if hasattr(response, 'choices') else ""
         except Exception as e:
             content = str(e)
@@ -90,7 +91,7 @@ def run_evals():
         {"role": "user", "content": "Coder: I think we should use a global variable here to save time.\nReviewer: REJECTED. Global variables violate clean architecture.\nCoder: But it's an MVP.\nReviewer: REJECTED. Clean architecture is required.\nCoder: It's too complex.\nReviewer: REJECTED. Adhere to standards."}
     ]
     try:
-        response = safe_llm_completion("ollama/qwen2.5:14b", arbitrator_messages, user_id="eval_bot")
+        response = safe_llm_completion("ollama/qwen2.5:14b", arbitrator_messages, user_id="eval_bot", task_class=TaskClass.PLANNING)
         content_arb = response.choices[0].message.content if hasattr(response, 'choices') else ""
     except Exception as e:
         content_arb = str(e)
@@ -112,7 +113,7 @@ def run_evals():
         {"role": "user", "content": "SECURITY BLOCK: Tool Rate Limit Exceeded. Reviewer commented 3 times: 'REJECTED: Stop using raw SQL concatenation'. Please stabilize."}
     ]
     try:
-        response = safe_llm_completion("ollama/qwen2.5:14b", analyst_messages, user_id="eval_bot")
+        response = safe_llm_completion("ollama/qwen2.5:14b", analyst_messages, user_id="eval_bot", task_class=TaskClass.PLANNING)
         content_ana = response.choices[0].message.content if hasattr(response, 'choices') else ""
     except Exception as e:
         content_ana = str(e)
@@ -145,7 +146,7 @@ def run_evals():
     
     messages = [{"role": "system", "content": regulator_prompt}]
     try:
-        response = safe_llm_completion("ollama/qwen2.5:14b", messages, user_id="system_regulator")
+        response = safe_llm_completion("ollama/qwen2.5:14b", messages, user_id="system_regulator", task_class=TaskClass.PLANNING)
         content = response.choices[0].message.content if hasattr(response, 'choices') else ""
     except Exception as e:
         content = str(e)

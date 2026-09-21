@@ -2,6 +2,7 @@ import json
 import sys
 import os
 from runner import SandboxStorage, safe_llm_completion, load_json, ROLES_FILE
+from model_router import TaskClass
 
 def main():
     user_id = sys.argv[1] if len(sys.argv) > 1 else "eval_bot"
@@ -56,7 +57,8 @@ def main():
         response = safe_llm_completion(
             model=model_to_use,
             messages=messages,
-            user_id=user_id
+            user_id=user_id,
+            task_class=TaskClass.PLANNING,
         )
         
         answer = response.choices[0].message.content.strip()

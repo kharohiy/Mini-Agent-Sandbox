@@ -1,0 +1,4 @@
+# Development and test tooling. Includes the complete application runtime.
+-r requirements-runtime.txt
+ruff==0.15.20
+semgrep==1.168.0

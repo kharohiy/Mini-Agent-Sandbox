@@ -1,21 +1,18 @@
 import os
 import json
+import re
+from pathlib import Path
 from cryptography.fernet import Fernet
 
 class VaultRegistry:
-    _instance = None
-    
-    def __new__(cls, vault_path=".vault", key_path=".vault_key"):
-        if cls._instance is None:
-            cls._instance = super(VaultRegistry, cls).__new__(cls)
-            cls._instance.vault_path = vault_path
-            cls._instance.key_path = key_path
-            cls._instance._init_encryption()
-        return cls._instance
+    def __init__(self, vault_path, key_path):
+        self.vault_path = Path(vault_path)
+        self.key_path = Path(key_path)
+        self._init_encryption()
 
     def _init_encryption(self):
         """Initializes the Master Key for encryption/decryption."""
-        if not os.path.exists(self.key_path):
+        if not self.key_path.exists():
             self.cipher_key = Fernet.generate_key()
             with open(self.key_path, "wb") as f:
                 f.write(self.cipher_key)
@@ -32,7 +29,7 @@ class VaultRegistry:
 
     def _load_encrypted_vault(self) -> dict:
         """Loads and decrypts the vault mapping."""
-        if not os.path.exists(self.vault_path):
+        if not self.vault_path.exists():
             return {}
             
         try:
@@ -69,5 +66,20 @@ class VaultRegistry:
         current_vault = self._load_encrypted_vault()
         return current_vault.get(token)
 
-# Singleton instantiation
-vault = VaultRegistry()
+def get_user_vault(user_id: str, base_dir="data") -> VaultRegistry:
+    """Return a vault isolated to one validated tenant workspace."""
+    if not isinstance(user_id, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}", user_id):
+        raise ValueError("Invalid user_id: use 1-64 letters, digits, underscores, or hyphens.")
+
+    base_path = Path(base_dir).resolve()
+    user_dir = base_path / user_id
+    if user_dir.is_symlink():
+        raise ValueError("Security Error: user vault directory cannot be a symlink.")
+    user_dir.mkdir(parents=True, exist_ok=True)
+    resolved_user_dir = user_dir.resolve()
+    try:
+        resolved_user_dir.relative_to(base_path)
+    except ValueError as exc:
+        raise ValueError("Security Error: user vault escapes the data directory.") from exc
+
+    return VaultRegistry(resolved_user_dir / ".vault", resolved_user_dir / ".vault_key")

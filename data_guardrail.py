@@ -31,8 +31,8 @@ def log_guardrail_telemetry(user_id, rule_name, layer, matched_text_length):
 
 class DataGuardrail:
     def __init__(self, config_path="guardrail_config.json"):
-        # Private In-Memory Vault Registry (Name mangling prevents accidental outer access)
-        self.__vault_registry = {}
+        # Keep mappings tenant-scoped until they are persisted to the matching vault.
+        self.__vault_registries = {}
         
         # Layer 1: Pattern Recognition Rules
         self.rules = [
@@ -94,14 +94,14 @@ class DataGuardrail:
                 
         return False, ""
 
-    def _generate_vault_token(self, rule_name: str, real_value: str) -> str:
+    def _generate_vault_token(self, rule_name: str, real_value: str, user_id: str) -> str:
         """Generates a strict unique token and registers it in the private Vault."""
         # Deterministic short hash avoids duplicates and keeps tokens concise
         val_hash = hashlib.sha256(real_value.encode('utf-8')).hexdigest()[:8].upper()
         token = f"__VAULT_SECRET_{rule_name}_{val_hash}__"
         
-        # Store in private registry
-        self.__vault_registry[token] = real_value
+        # Store in a user-scoped registry; never carry mappings across tenants.
+        self.__vault_registries.setdefault(user_id, {})[token] = real_value
         return token
 
     def run(self, text: str, user_id: str = "system") -> str:
@@ -117,7 +117,7 @@ class DataGuardrail:
                 is_valid, layer_info = self.context_check(text, match, rule)
                 if is_valid:
                     real_value = match.group(0)
-                    token = self._generate_vault_token(rule["name"], real_value)
+                    token = self._generate_vault_token(rule["name"], real_value, user_id)
                     
                     log_guardrail_telemetry(user_id, rule["name"], layer_info, len(real_value))
                     print(f"[Guardrail] 🛡️ Tokenized {rule['name']} via {layer_info}. Token: {token}")
@@ -130,12 +130,12 @@ class DataGuardrail:
 
         return text.strip()
         
-    def extract_vault_mapping(self) -> dict:
+    def extract_vault_mapping(self, user_id: str) -> dict:
         """
         Controlled Proxy for the Interceptor.
         Returns a hard copy of the registry to prevent memory reference leaks.
         """
-        return self.__vault_registry.copy()
+        return self.__vault_registries.get(user_id, {}).copy()
 
 # Global singleton instance for easy import
 guardrail = DataGuardrail()
