@@ -554,6 +554,32 @@ existing verified-card path remains the only indexing path. Focused Ruff and 11
 focused tests passed. No live GTA data, Docker, Gradle, model call, or training
 operation occurred.
 
+## Phase 12 — Deterministic session lifecycle
+
+**Status:** completed on 2026-09-21.
+
+The historical analysis's item 12 found that persistent state was bypassed by
+the primary loop. Phase 7 subsequently implemented a fail-closed `--resume`
+path for structurally valid interrupted state, so Phase 12 does not re-solve
+that completed part. It closes the remaining lifecycle ambiguity: new session,
+resume session, and reset session must have explicit deterministic semantics.
+
+The phase may replace the current ambiguous clear helper only after a written
+transition contract and focused temporary-fixture tests exist. Reset is a
+session-state operation only: it may not purge user data or alter project
+facts, verified knowledge, RAG collections, snapshots, ledgers, or vaults.
+Malformed or incompatible historic state must fail closed, not be silently
+repaired. LLM summarisation, conversation ingestion, and all RAG/model/
+provider/codegen/validation/Docker/Gradle/dependency work are excluded.
+
+Completion record: `SandboxStorage.reset_session_state()` removes only a
+selected user's `state.json`, rejects state-file symlinks, and leaves an absent
+user directory absent. `--reset` is explicit; `--clear` is a deprecated
+compatibility alias. `_new_session_state()` makes a clean new-session envelope
+explicit and existing resume validation remains fail-closed. Temporary-fixture
+lifecycle tests passed 3/3 and existing resume validation passed 1/1. No live
+state, RAG, GTA, model, Docker, Gradle, or package state changed.
+
 ## Phase 11 — Reproducible dependency manifests
 
 **Status:** completed on 2026-09-20.

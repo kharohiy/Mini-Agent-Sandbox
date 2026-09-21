@@ -816,6 +816,29 @@ not automate verification or indexing, treat a global book as GTA evidence, or
 train on model output. This narrows the remaining risk without reopening the
 codegen or validation workflows.
 
+## Phase 12 planning note — 2026-09-21
+
+Historical item 12 is only partially current. Phase 7 already added a
+fail-closed `--resume` path that restores a structurally valid interrupted
+session instead of unconditionally starting a fresh one. The remaining
+observed gap is lifecycle ambiguity: the current `--clear` helper directly
+mutates stored state, clears history, and marks the session `in_progress`.
+
+Phase 12 was therefore limited to deterministic `new`, `resume`, and explicit
+session-only `reset` semantics with focused fixture-based tests. It must not
+enable LLM summarisation, memory ingestion, RAG promotion, or learning from
+conversation. Reset must not purge user data or affect facts, knowledge cards,
+RAG, snapshots, ledgers, vaults, or project source. Unknown historic state must
+fail closed; no migration or repair is implied by this plan.
+
+Completion record (2026-09-21): the session reset removes only selected
+`state.json`, rejects a symlink state file, and leaves an absent user directory
+absent. The explicit `--reset` command was added; `--clear` is a deprecated
+compatibility alias. New session construction is explicit and the existing
+resume path remains fail-closed. Temporary-fixture lifecycle tests passed 3/3,
+with existing resume validation 1/1; no live state, RAG, GTA, model, Docker,
+Gradle, or package state was used.
+
 ## Phase 11 planning note — 2026-09-20
 
 Item 11 of this historical analysis remains applicable: `requirements.txt`

@@ -1,3 +1,34 @@
+## Phase 12 — completed 2026-09-21
+
+**Status:** completed on 2026-09-21.
+
+**Scope:** formalize and harden the per-user session lifecycle: explicit new
+session, fail-closed resume of an interrupted valid state, and an explicit
+session-only reset that cannot leave an accidental resumable task. The analysis
+item about resume is partially addressed already by Phase 7; Phase 12 concerns
+the remaining lifecycle and reset contract, not a new memory feature.
+
+**Acceptance:** focused fixture-based tests cover valid resume,
+malformed/non-interrupted refusal, new-session isolation, and reset
+non-resumability. All state changes are deterministic and no live saved state
+is used as test input.
+
+**Out of scope:** LLM summarisation; session-to-RAG ingestion, indexing,
+promotion, or training; project facts; knowledge cards; snapshots; RAG/Chroma;
+GTA source/profile; vaults; providers; roles; patch/review/approval/validation
+workflows; Docker; Gradle; models; dependency changes; broad suites. Reset may
+never call `purge_user_data` or remove non-session user data.
+
+See `PHASE12_PREPARATION.md` and `PHASE12_CONTINUATION_PROMPT.md`.
+
+**Observed completion:** `--reset` deletes only the selected session
+`state.json`; `--clear` remains a deprecated compatibility alias. New-session
+state construction is explicit and resume retains its fail-closed validation.
+Temporary-fixture lifecycle tests passed 3/3, existing resume validation passed
+1/1, and the new test passes Ruff. Facts and a vault file survived reset; no
+live state, RAG, GTA, model, Docker, Gradle, or package state was changed.
+`runner.py` retains 10 pre-existing Ruff findings outside this phase's edits.
+
 # Phase 8 closed — 2026-09-17
 
 GTA project RAG Q&A is complete: 393 project-code chunks, local Analyst →

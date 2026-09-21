@@ -77,6 +77,11 @@ These tests verify the correct routing, translation, and behavior of the finite 
 - **Expected behavior:** If the agent passes a path like `../../Windows/System32/file.txt`, the script mathematically (via `os.path.abspath`) blocks this action with the error `"Security Error: Path traversal detected"`.
 - **Incorrect behavior:** The agent successfully reads or overwrites files outside the `data/<user_id>/` directory.
 
+### 4. Session Lifecycle Reset (Phase 12)
+- **Description:** `test_session_lifecycle.py` creates an interrupted session in a temporary user directory together with a facts file and vault file, then resets the session.
+- **Expected behavior:** Only `state.json` is removed; facts and vault files remain, subsequent resume fails closed, and resetting an absent session is idempotent without creating a user directory.
+- **Incorrect behavior:** Reset makes the old task resumable, deletes non-session data, follows a state-file symlink, or creates user state as a side effect.
+
 ---
 
 ## 🛡️ Layer 1: Shift-Left Validation Evals

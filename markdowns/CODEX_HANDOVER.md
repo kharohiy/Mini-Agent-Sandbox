@@ -1,3 +1,31 @@
+## Phase 12 handover — completed 2026-09-21
+
+Phase 12 is **deterministic session lifecycle hardening**. The historical
+analysis item 12 is partially superseded: Phase 7 already added fail-closed
+resume of a structurally valid interrupted state. The remaining bounded issue
+is the lifecycle contract around new, resume, and reset: the current clear
+helper mutates session state directly and is neither explicit reset nor
+validated resume.
+
+Completion: `SandboxStorage.reset_session_state()` removes only selected
+`state.json`; it rejects symlink state files and does not create an absent user
+directory. `--reset` is explicit; legacy `--clear` is a deprecated compatible
+alias. `_new_session_state()` explicitly creates a clean envelope, while
+existing resume validation remains fail-closed. Temporary-fixture tests passed
+3/3 plus the existing resume validation 1/1; facts and a vault file survived
+reset and resume was rejected afterward.
+
+Do not enable LLM memory summarisation, conversation-to-RAG ingestion, or
+learning. Do not change facts, knowledge cards, snapshots, RAG/Chroma, the GTA
+profile/source, vaults, provider policy, roles, codegen/review/approval/
+validation, Docker, Gradle, models, or dependencies. Reset must never call
+`purge_user_data` or delete facts, vaults, project data, RAG, snapshots, or
+ledger evidence.
+
+Ruff passed for the new test. `ruff check runner.py` reports 10 pre-existing
+findings outside this phase's edits. No live state, GTA, RAG/Chroma, model,
+Docker, Gradle, or package state was changed.
+
 # Phase 8 closed — 2026-09-17
 
 GTA profile `gta-cheats--cc0fe5de` has 393 project-code chunks. `project_qa.py`

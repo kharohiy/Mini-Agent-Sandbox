@@ -358,6 +358,20 @@ class SandboxStorage:
                 return json.load(f)
         except FileNotFoundError:
             return {"status": "pending", "memory": [], "current_turn": "coder", "tool_executions": []}
+
+    def reset_session_state(self, user_id):
+        """Remove only one user's resumable session state, never other data tiers."""
+        user_dir = self._user_dir_path(user_id)
+        if user_dir.exists() and user_dir.is_symlink():
+            raise ValueError("Security Error: user workspace cannot be a symlink.")
+        state_file = user_dir / "state.json"
+        if state_file.is_symlink():
+            raise ValueError("Security Error: session state cannot be a symlink.")
+        try:
+            state_file.unlink()
+        except FileNotFoundError:
+            return False
+        return True
             
     def save_state(self, user_id, state):
         # TEMPORARILY DISABLED: self._summarize_memory_if_needed(user_id, state)
@@ -958,6 +972,23 @@ def _load_resumable_state(storage, user_id, roles):
     return state
 
 
+def _new_session_state(project_id=None, proposal_step_id=None):
+    """Create a clean session envelope without reading prior saved state."""
+    state = {
+        "status": "idle",
+        "task_mode": "code",
+        "current_turn": "coder",
+        "memory": [],
+        "tool_executions": [],
+        "metrics": {"total_cost": 0.0},
+        "agent_steps": 0,
+    }
+    if project_id:
+        state["project_id"] = project_id
+        state["proposal_step_id"] = proposal_step_id
+    return state
+
+
 def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=None, task=None):
     roles_data = load_json(ROLES_FILE)
     roles = roles_data.get("agents", {}) if roles_data else {}
@@ -973,18 +1004,7 @@ def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=N
             raise ValueError("Project patch mode requires both project ID and plan step ID.")
         if project_id:
             ProjectRegistry().get(project_id)
-        state = {
-            "status": "idle",
-            "task_mode": "code",
-            "current_turn": "coder",
-            "memory": [],
-            "tool_executions": [],
-            "metrics": {"total_cost": 0.0},
-            "agent_steps": 0,
-        }
-        if project_id:
-            state["project_id"] = project_id
-            state["proposal_step_id"] = proposal_step_id
+        state = _new_session_state(project_id, proposal_step_id)
 
         new_task = task if task is not None else input("\nEnter task for agents (or empty string to exit): ")
         if not new_task.strip():
@@ -1608,22 +1628,17 @@ def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=N
     # Trigger regulator at the end of the session
     trigger_regulator(user_id)
 
-def clear_session_history(user_id):
+def reset_session_state(user_id):
     storage = SandboxStorage(base_dir="data")
-    state = storage.get_current_state(user_id)
-    
-    state["memory"] = []
-    state["tool_executions"] = []
-    state["status"] = "in_progress"
-    state["current_turn"] = "coder"
-    # The metrics (cost/tokens) and the task itself remain unchanged.
-    
-    # Direct saving, bypassing compression
-    state_file = os.path.join(storage._get_user_dir(user_id), "state.json")
-    with open(state_file, "w", encoding="utf-8") as f:
-        json.dump(state, f, ensure_ascii=False, indent=2)
-        
-    print(f"[System] RAM for user {user_id} cleared (state.json). Fact base (Tier 2) is untouched!")
+    removed = storage.reset_session_state(user_id)
+    outcome = "reset" if removed else "already absent"
+    print(f"[System] Session for user {user_id} {outcome}. Facts, knowledge, RAG, vaults, and project data are untouched.")
+
+
+def clear_session_history(user_id):
+    """Backward-compatible alias for the explicit session reset contract."""
+    print("[System] --clear is deprecated; applying the session-only reset contract.")
+    return reset_session_state(user_id)
 
 def unload_ollama_models():
     import urllib.request
@@ -1660,6 +1675,8 @@ if __name__ == "__main__":
             )
         finally:
             unload_ollama_models()
+    elif len(sys.argv) > 2 and sys.argv[1] == "--reset":
+        reset_session_state(sys.argv[2])
     elif len(sys.argv) > 2 and sys.argv[1] == "--clear":
         clear_session_history(sys.argv[2])
     elif len(sys.argv) > 1 and sys.argv[1] == "--resume":
