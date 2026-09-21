@@ -27,6 +27,12 @@ ownership, ingestion inheritance, and backward-compatible default installation;
 3/3 tests and focused Ruff passed. No dependency resolution or package state
 change occurred.
 
+**Fresh-clone acceptance 2026-09-21:** an isolated Python 3.11.9 environment
+at commit `3f7027f` passed `pip check`, runtime imports, and the full suite
+(166 tests; 17 expected skips). After installing `requirements-ingest.txt`, the
+two project-ingestion tests also passed. This check did not run Ollama, create
+a Chroma persistent store, process PDFs, or ingest a RAG corpus.
+
 - Valid same-project `project-code` paths and snapshot/source hashes create a
   draft only.
 - Global-library, missing, stale, and cross-project evidence are rejected.

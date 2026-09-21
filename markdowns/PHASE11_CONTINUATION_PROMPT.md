@@ -50,6 +50,14 @@ Completion record — 2026-09-20
   was changed.
 - Ruff and `test_dependency_manifests` passed 3/3.
 
-Phase 11 is complete. Do not perform a clean-environment install without new
-user authorization.
+Fresh-clone acceptance record — 2026-09-21
+------------------------------------------
+- A separate `E:` clone reached `3f7027f`; Python 3.11.9 installed the default
+  and optional-ingestion manifests with Pip caching disabled.
+- `pip check`, runtime imports, the full suite (166 tests; 17 expected skips),
+  and the two ingestion tests passed.
+- No Ollama, Chroma persistent store, PDF/RAG ingestion, or GTA source action
+  occurred; generated test registry state was removed.
+
+Phase 11 and its fresh-clone acceptance are complete.
 ```

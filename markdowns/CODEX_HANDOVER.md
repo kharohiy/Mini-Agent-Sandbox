@@ -62,6 +62,12 @@ tests passed 3/3 and Ruff passed. No package install, upgrade, download,
 removal, lockfile resolution, model, RAG, Android, Docker, or Gradle state was
 changed. A clean-environment install remains separately authorized.
 
+Fresh-clone acceptance (2026-09-21): a separate `E:` clone finished at
+`3f7027f`. Python 3.11.9 installed the default and optional-ingestion manifests
+with Pip caching disabled. `pip check`, runtime imports, the full suite (166
+tests; 17 expected skips), and the two ingestion tests passed. No Ollama,
+Chroma persistent store, PDF/RAG ingestion, or GTA source was used.
+
 Phase 11 recovery-first contract: preserve `requirements.txt` as the familiar
 installation entry point, retain currently observed compatible versions unless
 a direct import proves otherwise, and make only additive manifest changes until

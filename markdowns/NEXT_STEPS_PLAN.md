@@ -27,6 +27,12 @@ the focused dependency-manifest suite passed 3/3. No package state, model, RAG,
 Android, Docker, or Gradle state changed; clean-environment installation remains
 separately authorized.
 
+**Fresh-clone acceptance (2026-09-21):** completed in an isolated `E:` clone
+at `3f7027f`. Python 3.11.9 installed the default and optional-ingestion
+manifests; `pip check`, runtime imports, the full suite (166 tests; 17 expected
+skips), and the two ingestion tests passed. No RAG corpus, Chroma persistent
+store, Ollama, PDF processing, or GTA source was used.
+
 ## Phase 10 — completed 2026-09-20
 
 **Scope:** implement a deterministic proposal bridge from grounded project Q&A

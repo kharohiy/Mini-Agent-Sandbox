@@ -61,5 +61,16 @@ because it downloads and changes external package state.
   inheritance, and the compatible default entry point. Ruff passed; 3/3
   focused tests passed.
 
-Phase 11 is complete. A clean-environment installation remains deliberately
-unperformed and requires separate user authorization.
+Fresh-clone acceptance — 2026-09-21
+------------------------------------
+
+- A separate `E:` clone finished at commit `3f7027f` with Python 3.11.9.
+- `requirements.txt` installed with Pip caching disabled; `pip check`, runtime
+  imports, and the full suite passed (166 tests; 17 expected skips).
+- `requirements-ingest.txt` installed independently and its two ingestion tests
+  passed. The optional tests now skip without that manifest rather than failing
+  during collection.
+- No Ollama, Chroma persistent store, PDF/RAG ingestion, or GTA source was
+  used. Generated test registry state was removed afterward.
+
+Phase 11 and its fresh-clone acceptance are complete.

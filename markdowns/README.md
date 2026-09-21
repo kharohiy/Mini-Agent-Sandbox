@@ -413,6 +413,12 @@ manifests, while `requirements.txt` remains the compatible default entry point.
 Focused Ruff and 3/3 manifest tests passed. No package state changed; a
 clean-environment installation remains separately authorized.
 
+Fresh-clone acceptance completed on 2026-09-21 in an isolated `E:` clone at
+`3f7027f`: Python 3.11.9 installed the default and optional-ingestion manifests
+with Pip caching disabled. `pip check`, runtime imports, the full suite (166
+tests; 17 expected skips), and the two ingestion tests passed. No RAG corpus,
+Chroma persistent store, Ollama, PDF processing, or GTA source was used.
+
 ## Latest Phase 8 codegen status
 
 The project-patch bridge accepts only bounded Coder proposals and recovers

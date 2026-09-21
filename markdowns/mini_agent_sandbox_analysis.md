@@ -829,6 +829,13 @@ manifests now account for observed direct imports while preserving the default
 `requirements.txt` entry point. Focused manifest tests passed 3/3. No package
 state changed; a clean-environment install remains separately authorized.
 
+Fresh-clone acceptance (2026-09-21): completed in an isolated `E:` clone at
+`3f7027f` with Python 3.11.9. Default and optional-ingestion manifests
+installed with Pip caching disabled; `pip check`, runtime imports, the full
+suite (166 tests; 17 expected skips), and the two ingestion tests passed. No
+RAG corpus, Chroma persistent store, Ollama, PDF processing, or GTA source was
+used.
+
 Completion record (2026-09-20): the deterministic bridge validates structured
 same-project project-code paths and hashes against the snapshot before creating
 only a draft card. Global-library, missing, stale, and cross-project evidence
