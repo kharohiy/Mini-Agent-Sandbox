@@ -80,9 +80,9 @@ class ProjectRagIngestionTests(unittest.TestCase):
             db.execute("DROP TABLE IF EXISTS files")
             db.execute("CREATE TABLE files (path TEXT, sha256 TEXT, language TEXT, module TEXT)")
             for relative, text in sources.items():
-            target = self.source / relative
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(text, encoding="utf-8")
+                target = self.source / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(text, encoding="utf-8")
                 db.execute("INSERT INTO files VALUES (?, ?, 'kotlin', ':app')", (relative, hashlib.sha256(text.encode()).hexdigest()))
             db.commit()
         finally:
