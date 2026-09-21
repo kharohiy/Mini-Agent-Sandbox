@@ -1,11 +1,15 @@
 import hashlib
+import importlib.util
 import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from project_rag_ingestion import ingest_project
+if importlib.util.find_spec("langchain_text_splitters") is not None:
+    from project_rag_ingestion import ingest_project
+else:
+    ingest_project = None
 
 
 class FakeCollection:
@@ -52,13 +56,18 @@ class FakeRegistry:
         return self.state
 
 
+@unittest.skipUnless(
+    ingest_project is not None,
+    "install requirements-ingest.txt to run project RAG ingestion tests",
+)
 class ProjectRagIngestionTests(unittest.TestCase):
     def setUp(self):
         FakeService.collection, FakeService.replacements = FakeCollection(), []
         self.temp = tempfile.TemporaryDirectory()
         root = Path(self.temp.name)
         self.source, self.state = root / "source", root / "state"
-        self.source.mkdir(); (self.state / "snapshot").mkdir(parents=True)
+        self.source.mkdir()
+        (self.state / "snapshot").mkdir(parents=True)
         self.registry = FakeRegistry(self.source, self.state)
         self.write_snapshot({"src/A.kt": "class A", "src/B.kt": "class B"})
 
@@ -71,7 +80,9 @@ class ProjectRagIngestionTests(unittest.TestCase):
             db.execute("DROP TABLE IF EXISTS files")
             db.execute("CREATE TABLE files (path TEXT, sha256 TEXT, language TEXT, module TEXT)")
             for relative, text in sources.items():
-                target = self.source / relative; target.parent.mkdir(parents=True, exist_ok=True); target.write_text(text, encoding="utf-8")
+            target = self.source / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(text, encoding="utf-8")
                 db.execute("INSERT INTO files VALUES (?, ?, 'kotlin', ':app')", (relative, hashlib.sha256(text.encode()).hexdigest()))
             db.commit()
         finally:
