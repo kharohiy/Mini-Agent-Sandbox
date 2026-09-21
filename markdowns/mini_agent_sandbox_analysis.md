@@ -931,3 +931,29 @@ path-policy and ledger controls. This compatibility layer grants no exception.
 The remaining risk is local completion stalling before first output; resolution
 must preserve default-deny providers, budgets, explicit approval, read-only
 source and temporary-copy validation.
+## Phase 14 planning note — 2026-09-21
+
+Historical item 14 is the authoritative motivation for the next phase. Its
+legacy `user_<id>_local_nomic` observation remains valid as a missing explicit
+user-document ingestion contract, but its two-collection topology is
+superseded by Phases 9–10. Current project-code, global-library, and verified
+project-knowledge stores are already isolated and must remain so.
+
+Phase 14 is planned as an explicit, user-confirmed pipeline for supplemental
+documents bound to one registered project. Facts remain structured memory,
+conversation remains session-only memory, and new documents receive their own
+`project-document` trust/scope rather than becoming code evidence or knowledge.
+LLM output, conversations, book passages and supplemental docs cannot
+auto-promote. The plan grants no permission to write, migrate, re-index, or
+delete live RAG. Full design, blockers, and acceptance criteria are in
+`PHASE14_PREPARATION.md`.
+
+Completion record (2026-09-21): Phase 14 added a separate project-document
+collection and explicit project-bound text/Markdown ingestion contract. It is
+checksum-backed, idempotent, confirmation-gated, and writes a metadata-only
+manifest; the old user collection was neither populated, migrated nor deleted.
+Supplemental documents have their own retrieval label and cannot establish
+project facts or auto-promote into knowledge. Focused tests passed 26/26 and
+the full suite passed 185/185 with 19 expected skips. An isolated real local
+Ollama/Chroma fixture retrieved one project-document hit and was deleted; no
+live GTA or global RAG data changed.

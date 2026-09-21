@@ -1,18 +1,20 @@
 ## Current checkpoint — Phases 13 and 13.1 completed
 
-**Status:** completed on 2026-09-21; await review, then commit and push.
+**Status:** Phases 13/13.1 were committed and pushed as `ffd0fd0` on
+2026-09-21. Phase 14 is completed; await review before commit and push.
 
-**Scope:** audit and, only if proven locally reproducible, replace the shared
-`chars / 4` approximation used by the router context gate and runner metrics
-with one model-aware counter or documented conservative bound. It must include
-message framing and completion reserve, and distinguish exact count from a
-bound.
+**Phase 14 scope:** close the still-relevant historical user-document
+RAG gap through an explicit project-bound supplemental-document ingestion
+pipeline. It must preserve the existing cascade: GTA project-code is evidence,
+verified cards are human-approved knowledge, and global books are technical
+reference only. The legacy user collection is audited, not automatically fed,
+migrated, or deleted.
 
-**Acceptance:** focused fake-based tests prove one count is used for the
-router decision and utilisation metric, limits refuse before provider dispatch,
-and unknown models do not claim exact counting. A missing proven local counter
-is a valid blocker; code remains unchanged until a separate dependency decision
-is authorized.
+**Phase 14 acceptance — completed:** isolated temporary-fixture tests prove explicit
+project ownership, deterministic idempotent replacement, no cross-project or
+legacy leakage, failure-safe ingestion records, and labelled retrieval. No
+supplemental document may establish a project fact or self-promote into
+knowledge.
 
 **Observed completion:** approved hash-verified Qwen assets on `E:` yielded an
 offline count of 26, matching one real Ollama `prompt_eval_count=26`. The shared
@@ -27,8 +29,7 @@ values; package or manifest changes; downloads; Ollama; RAG/Chroma; facts,
 knowledge, session state, vaults; GTA; Docker; Gradle; and patch/review/
 approval/validation workflows.
 
-See `PHASE13_PREPARATION.md`, `PHASE13_CONTINUATION_PROMPT.md`,
-`PHASE13_1_PREPARATION.md`, and `PHASE13_1_CONTINUATION_PROMPT.md`.
+See `PHASE14_PREPARATION.md` and `PHASE14_CONTINUATION_PROMPT.md`.
 
 **Observed blocker:** LiteLLM's installed `token_counter` is deterministic on
 a fixed fixture but maps `ollama/qwen2.5:14b` to `gpt-3.5-turbo` and falls back

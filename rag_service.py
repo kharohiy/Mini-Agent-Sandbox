@@ -52,11 +52,13 @@ class SandboxRagService:
             db_path = str(self.project_state_dir / "rag" / "chroma_db")
             self.collection_name = f"project_{project_id.replace('-', '_')}_code"
             self.knowledge_collection_name = f"project_{project_id.replace('-', '_')}_knowledge"
+            self.document_collection_name = f"project_{project_id.replace('-', '_')}_documents"
         else:
             self.project_state_dir = None
             db_path = os.path.join(self.storage.base_dir, "chroma_db")
             self.collection_name = f"user_{self.user_id}_local_nomic"
             self.knowledge_collection_name = None
+            self.document_collection_name = None
         os.makedirs(db_path, exist_ok=True)
         self.client = chromadb.PersistentClient(path=db_path)
         
@@ -69,6 +71,10 @@ class SandboxRagService:
         self.knowledge_collection = (
             self.client.get_or_create_collection(name=self.knowledge_collection_name, embedding_function=embedding_func)
             if self.knowledge_collection_name else None
+        )
+        self.document_collection = (
+            self.client.get_or_create_collection(name=self.document_collection_name, embedding_function=embedding_func)
+            if self.document_collection_name else None
         )
         
         # External Architecture Library collection

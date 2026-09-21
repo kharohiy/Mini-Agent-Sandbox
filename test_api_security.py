@@ -56,6 +56,24 @@ class ApiSecurityTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["results"], [{"path": "app/Main.kt"}])
 
+    @patch("api.list_project_documents", return_value=[{"source": "notes.md", "status": "active"}])
+    @patch("api.ingest_project_document", return_value={"action": "indexed", "document": {"source": "notes.md"}})
+    @patch("api.remove_project_document", return_value={"action": "removed", "document": {"source": "notes.md"}})
+    def test_project_document_api_uses_explicit_request_content_not_a_disk_path(self, remove, ingest, list_documents):
+        listed = self.client.get("/projects/demo--1234abcd/documents")
+        created = self.client.post(
+            "/projects/demo--1234abcd/documents",
+            json={"source": "notes.md", "content": "owner supplied text", "confirmed": True},
+        )
+        removed = self.client.delete("/projects/demo--1234abcd/documents/notes.md?confirmed=true")
+        self.assertEqual(listed.status_code, 200)
+        self.assertEqual(created.status_code, 200)
+        self.assertEqual(removed.status_code, 200)
+        self.assertEqual(ingest.call_args.kwargs["content"], "owner supplied text")
+        self.assertNotIn("path", ingest.call_args.kwargs)
+        self.assertTrue(remove.call_args.kwargs["confirmed"])
+        self.assertEqual(list_documents.call_args.args, ("demo--1234abcd",))
+
     def test_knowledge_api_preserves_evidence_and_syncs_only_after_verify(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -75,7 +93,9 @@ class ApiSecurityTests(unittest.TestCase):
 
     def test_patch_api_requires_reviewer_then_explicit_user_approval(self):
         with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary); source = root / "source"; source.mkdir()
+            root = Path(temporary)
+            source = root / "source"
+            source.mkdir()
             registry = ProjectRegistry(root / "registry.sqlite", root / "projects")
             project = registry.register(source, "Demo")
             ProjectPolicyStore(registry).update(

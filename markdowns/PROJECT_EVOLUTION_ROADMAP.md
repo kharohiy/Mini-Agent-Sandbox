@@ -637,3 +637,26 @@ Fresh-clone acceptance (2026-09-21): completed in an isolated `E:` clone at
 with Pip caching disabled. `pip check`, runtime imports, the full suite (166
 tests; 17 expected skips), and the two ingestion tests passed. No RAG corpus,
 Chroma persistent store, Ollama, PDF processing, or GTA source was used.
+## Phase 14 — Explicit project-document ingestion and long-term RAG boundaries
+
+**Status:** completed on 2026-09-21.
+
+The historical analysis found a legacy user vector collection that is not fed
+by a clear main-loop ingestion contract. The solution is not to merge it with
+the post-Phase-9 cascade. Phase 14 will define an explicit, project-bound,
+idempotent supplemental-document pipeline and a separate `project-document`
+retrieval scope. Project-code remains the evidence source for project facts;
+verified cards remain human-approved knowledge; global books remain optional
+technical reference.
+
+The phase excludes corpus rebuilds, legacy migration/deletion, conversation or
+model-output ingestion, automatic knowledge promotion/training, and changes to
+GTA source, models, policies, Docker, Gradle, validation or approval. See
+`PHASE14_PREPARATION.md` for blockers and acceptance evidence.
+
+Completion record: explicit request-body text/Markdown ingestion is bounded,
+confirmed, checksum-backed and project-bound; its separate document collection
+and metadata-only manifest cannot contaminate project-code or knowledge.
+Focused tests passed 26/26; the full suite passed 185/185 with 19 expected
+skips. A real local Ollama/Chroma temporary-fixture run retrieved only its own
+`project-document` hit and was deleted afterward. No live corpus changed.

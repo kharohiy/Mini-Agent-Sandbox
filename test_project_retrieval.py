@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from project_registry import ProjectRegistry
 from project_retrieval import (
+    _chroma_hits,
     _literal_project_hits,
     format_retrieval_context,
     retrieve_global_technical_references,
@@ -21,6 +22,9 @@ class Collection:
         return 1
 
     def query(self, **kwargs):
+        where = kwargs.get("where")
+        if where and any(self.metadata.get(key) != value for key, value in where.items()):
+            return {"documents": [[]], "metadatas": [[]], "distances": [[]]}
         return {"documents": [[self.document]], "metadatas": [[self.metadata]], "distances": [[0.1]]}
 
     def get(self, **kwargs):
@@ -31,6 +35,7 @@ class FakeRagService:
     def __init__(self, *args, **kwargs):
         self.collection = Collection("class MainActivity", {"source": "app/MainActivity.kt", "module": ":app"})
         self.knowledge_collection = Collection("Use repository boundary", {"card_id": "kc_project", "modules": '[":data"]'})
+        self.document_collection = Collection("Owner supplied API notes", {"source": "notes.md", "ingestion_status": "active"})
         self.library_collection = Collection("Navigation is state-driven", {"source": "Compose.pdf", "context": "Navigation"})
         self.global_knowledge_collection = Collection("Validate in Docker", {"card_id": "kc_global", "modules": "[]"})
 
@@ -54,7 +59,10 @@ class ProjectRetrievalTests(unittest.TestCase):
                 db.close()
             with patch("project_retrieval.SandboxRagService", FakeRagService):
                 hits = retrieve_project_context(project["id"], "MainActivity", registry=registry)
-            self.assertEqual([hit["trust"] for hit in hits], ["snapshot", "project code", "verified project knowledge"])
+            self.assertEqual(
+                [hit["trust"] for hit in hits],
+                ["snapshot", "project code", "verified project knowledge", "user supplied project document"],
+            )
             context = format_retrieval_context(hits)
             self.assertIn("SOURCE: app/MainActivity.kt", context)
             self.assertIn("MODULE: :app", context)
@@ -85,6 +93,18 @@ class ProjectRetrievalTests(unittest.TestCase):
         )
         self.assertEqual([hit["source"] for hit in hits], ["app/src/main/AndroidManifest.xml"])
         self.assertGreaterEqual(hits[0]["lexical_matches"], 2)
+
+    def test_pending_project_document_is_not_retrieved(self):
+        pending = Collection("uncommitted document", {"source": "notes.md", "ingestion_status": "pending"})
+        hits = _chroma_hits(
+            pending,
+            "document",
+            "project-document",
+            "user supplied project document",
+            4,
+            where={"ingestion_status": "active"},
+        )
+        self.assertEqual(hits, [])
 
 
 if __name__ == "__main__":

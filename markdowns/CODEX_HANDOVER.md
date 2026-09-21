@@ -769,7 +769,7 @@ Do not confuse that evidence with a real Gradle run on the connected source: the
 diff; policy and WorkLedger validate it before persistence; Reviewer records no
 user approval or apply. Native tool calls, JSON diffs and narrowly parsed
 malformed Qwen envelopes pass through the same checks. Focused tests last
-passed 25/25.
+passed 26/26.
 
 The GTA task `task_3cf6b6422d16432da3133cdd9d016d2a` is bound only to
 `feature/gta_v/src/main/java/com/gamescheats/feature/gta_v/screen/GtaVCheatCodesScreen.kt`.
@@ -806,7 +806,39 @@ asset is optional and its absence safely selects fallback. Do not remove or
 replace the external asset; do not widen exact mode without new measured local
 fixtures.
 
-Next action after the user reviews this completed work is a focused commit and
-push for Phases 13/13.1, then a fresh Phase 14 planning audit. Phase 14 must
-reconcile its historical user-document RAG claim with the existing cascaded
-GTA project-code/global-library architecture before any implementation.
+Phases 13/13.1 were committed and pushed as `ffd0fd0` on 2026-09-21.
+
+## Phase 14 handover — planned, awaiting authorization
+
+The authoritative source is item 14 of `mini_agent_sandbox_analysis.md`:
+legacy per-user vector RAG has an append helper but no explicit main-loop
+document ingestion contract. The current system is richer than that historical
+snapshot: project-code RAG, verified project knowledge, and global books are
+already separate. Phase 14 may add only an explicit project-bound supplemental
+document collection and pipeline; it must not turn the old legacy collection
+into a catch-all memory.
+
+Read `PHASE14_PREPARATION.md` and `PHASE14_CONTINUATION_PROMPT.md`. Do not
+start code changes until the user authorizes implementation. Do not re-index
+GTA/global corpora, ingest conversation/model output/facts, train a model,
+auto-promote knowledge, modify connected source, or change policies, Docker,
+Gradle, providers, roles, approval, or validation.
+
+## Phase 14 handover — completed 2026-09-21
+
+The legacy user-RAG finding from analysis item 14 is closed by a separate,
+explicit project-document pipeline, not by mixing memory tiers. New
+`project_document_ingestion.py` accepts only confirmed request-body text or
+Markdown for a registered project; it refuses arbitrary file paths, unknown
+projects, invalid sources, unsupported types, oversized input, and unconfirmed
+writes/removals. It stores only manifest metadata plus checksum/chunk IDs and
+uses a distinct `project_*_documents` collection.
+
+Project retrieval returns active supplemental documents with their own
+`project-document` scope/trust label after project-code and verified knowledge.
+They do not satisfy Phase 10 project-code evidence and cannot create facts or
+knowledge cards. Focused tests passed 26/26, focused Ruff passed, and the full
+deterministic suite passed 185/185 with 19 expected skips. A real local
+Ollama/Chroma fixture run retrieved only its own document; its complete
+`data/phase14_integration` fixture was deleted. GTA/global corpora, connected
+source, facts, knowledge, session data, Docker and Gradle remain untouched.

@@ -49,13 +49,14 @@ def _snapshot_hits(registry: ProjectRegistry, project_id: str, query: str, limit
              "text": f"Snapshot: {row[0]} | module: {row[2]} | symbols: {row[3] or ''}"} for row in rows]
 
 
-def _chroma_hits(collection, query: str, scope: str, trust: str, limit: int) -> list[dict]:
+def _chroma_hits(collection, query: str, scope: str, trust: str, limit: int, *, where: dict | None = None) -> list[dict]:
     if collection.count() == 0:
         return []
     result = collection.query(
         query_texts=[query],
         n_results=min(limit, collection.count()),
         include=["documents", "metadatas", "distances"],
+        **({"where": where} if where else {}),
     )
     documents = result.get("documents", [[]])[0] or []
     metadata = result.get("metadatas", [[]])[0] or []
@@ -179,6 +180,14 @@ def retrieve_project_context(project_id: str, query: str, *, top_k: int = 4,
         snapshots
         + project_code
         + _chroma_hits(service.knowledge_collection, query, "project-knowledge", "verified project knowledge", top_k)
+        + _chroma_hits(
+            service.document_collection,
+            query,
+            "project-document",
+            "user supplied project document",
+            top_k,
+            where={"ingestion_status": "active"},
+        )
     )
 
 

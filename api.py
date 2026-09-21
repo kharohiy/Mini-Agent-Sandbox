@@ -10,6 +10,7 @@ from operations_view import build_operations_view
 from project_policy import ProjectPolicyStore
 from project_retention import ProjectRetentionPreview
 from project_telemetry import ProjectTelemetryStore
+from project_document_ingestion import ingest_project_document, list_project_documents, remove_project_document
 from work_ledger import WorkLedger
 
 app = FastAPI(title="Mini Agent Sandbox", version="0.1.0")
@@ -93,6 +94,13 @@ class ProjectPolicyRequest(BaseModel):
     auto_apply_level: str
 
 
+class ProjectDocumentRequest(BaseModel):
+    source: str
+    content: str
+    content_type: str = "text/plain"
+    confirmed: bool = False
+
+
 @app.get("/security-contract")
 def security_contract():
     return policy.manifest
@@ -139,6 +147,27 @@ def project_search(project_id: str, q: str, limit: int = 20):
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get("/projects/{project_id}/documents")
+def project_documents(project_id: str):
+    """Metadata-only inventory of explicitly ingested supplemental documents."""
+    return _knowledge_error(lambda: {"documents": list_project_documents(project_id)})
+
+
+@app.post("/projects/{project_id}/documents")
+def ingest_document(project_id: str, request: ProjectDocumentRequest):
+    """Explicit request-body ingestion; this endpoint never reads a disk path."""
+    return _knowledge_error(
+        lambda: ingest_project_document(project_id, **request.model_dump())
+    )
+
+
+@app.delete("/projects/{project_id}/documents/{source}")
+def delete_document(project_id: str, source: str, confirmed: bool = False):
+    return _knowledge_error(
+        lambda: remove_project_document(project_id, source, confirmed=confirmed)
+    )
 
 
 def _knowledge_error(action):
