@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import runner
-from test_documentation_policy import CONTRACT, DOC, HITS, good_review
+from tests.sandbox.core.test_documentation_policy import CONTRACT, DOC, HITS, good_review
 
 
 def response(content=None, calls=None):

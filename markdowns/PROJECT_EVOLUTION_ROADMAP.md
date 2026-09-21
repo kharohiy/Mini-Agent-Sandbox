@@ -660,3 +660,19 @@ and metadata-only manifest cannot contaminate project-code or knowledge.
 Focused tests passed 26/26; the full suite passed 185/185 with 19 expected
 skips. A real local Ollama/Chroma temporary-fixture run retrieved only its own
 `project-document` hit and was deleted afterward. No live corpus changed.
+
+## Phase 14.1 — Test-suite structure and project-RAG separation
+
+**Status:** completed on 2026-09-21; awaiting commit and push.
+
+All 38 Python test modules were Git-renamed from the repository root into the
+`tests/` package. `tests/sandbox/` holds Mini Agent Sandbox unit/contract tests;
+`tests/project_rag/` holds generic registered-project RAG contracts; and
+`tests/integration/` holds bounded Docker/local-Ollama checks. The only Android
+fixture remains synthetic under `tests/fixtures/kotlin-android`; no GTA source
+or generated RAG/runtime data belongs in Git.
+
+The supported deterministic command is
+`python -m unittest discover -s tests -t . -v`. It passed 181 tests with 19
+expected skips, and `python -m ruff check tests` passed. This phase changes no
+production behaviour and does not activate Docker or Ollama integration.

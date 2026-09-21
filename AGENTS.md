@@ -50,14 +50,14 @@ evidence.
 ## Build, Test, and Development Commands
 
 - `python -m pip install -r requirements.txt` installs default dependencies.
-- `python -m unittest -v` runs the deterministic test suite.
-- `python -m unittest test_documentation_mode -v` runs a focused regression module; substitute the relevant `test_*.py` name as needed.
+- `python -m unittest discover -s tests -t . -v` runs the deterministic test suite.
+- `python -m unittest tests.sandbox.core.test_documentation_mode -v` runs a focused regression module; substitute the relevant fully-qualified test module as needed.
 - `python -m ruff check .` runs static checks.
 - `python evals_pipeline.py` runs the security evaluation pipeline.
 - `uvicorn api:app --host 127.0.0.1 --port 8000` starts the loopback API.
 - `docker compose --profile build-executor build` builds the isolated executor image.
 
-Ollama/Chroma integration is opt-in. Set `MINI_AGENT_RUN_OFFLINE_INTEGRATION=1` before `python -m unittest test_offline_integration -v`; standard tests must not contact a model service. Set `MINI_AGENT_OFFLINE=1` to require local Ollama routing at runtime.
+Ollama/Chroma integration is opt-in. Set `MINI_AGENT_RUN_OFFLINE_INTEGRATION=1` before `python -m unittest tests.integration.local_ollama.test_offline_integration -v`; standard tests must not contact a model service. Set `MINI_AGENT_OFFLINE=1` to require local Ollama routing at runtime.
 
 ## Coding Style & Naming Conventions
 
@@ -65,7 +65,7 @@ Use four-space indentation and Python imports. Use `snake_case` for files, funct
 
 ## Testing Guidelines
 
-Tests use `unittest`, with root-level files named `test_<area>.py` and methods named `test_<behavior>`. Add a focused regression test for every behavioral or security change. Prefer mocks and temporary directories; Docker tests may skip when Docker is unavailable.
+Tests use `unittest`, with modules under `tests/<area>/test_<area>.py` and methods named `test_<behavior>`. `tests/sandbox/` covers the Sandbox itself, `tests/project_rag/` covers generic registered-project/RAG contracts, and `tests/integration/` contains explicitly bounded Docker or local-Ollama checks. `tests/fixtures/` contains only synthetic inputs; never place a connected project's source there. Add a focused regression test for every behavioral or security change. Prefer mocks and temporary directories; Docker tests may skip when Docker is unavailable.
 
 ## Commit & Pull Request Guidelines
 

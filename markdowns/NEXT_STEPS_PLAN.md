@@ -1,7 +1,16 @@
-## Current checkpoint — Phases 13 and 13.1 completed
+## Current checkpoint — Phases 14 and 14.1 completed
 
-**Status:** Phases 13/13.1 were committed and pushed as `ffd0fd0` on
-2026-09-21. Phase 14 is completed; await review before commit and push.
+**Status:** Phases 13/13.1 were committed and pushed as `ffd0fd0`; Phase 14
+was committed and pushed as `c563cd4` on 2026-09-21. Phase 14.1 is completed
+locally and awaits review, commit, and push.
+
+**Phase 14.1 structure — completed:** all Python test modules now reside under
+`tests/`: `sandbox/` for the Sandbox itself, `project_rag/` for generic
+registered-project/RAG contracts, and `integration/` for Docker or opt-in
+local-Ollama checks. `tests/fixtures/` remains synthetic only. The deterministic
+discovery suite passed 181 tests with 19 expected skips, and Ruff passed for
+`tests/`. No production code, GTA source, live RAG, Docker, Gradle, model, or
+package state changed.
 
 **Phase 14 scope:** close the still-relevant historical user-document
 RAG gap through an explicit project-bound supplemental-document ingestion

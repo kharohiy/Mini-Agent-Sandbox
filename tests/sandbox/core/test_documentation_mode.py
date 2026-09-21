@@ -1,7 +1,5 @@
 import unittest
-from unittest.mock import patch
 
-import runner
 from runner import AGENT_TOOLS, agent_tools_for_task_mode, documentation_path_allowed, model_fact_update_denied
 
 
@@ -31,7 +29,7 @@ class DocumentationTaskModeTests(unittest.TestCase):
         self.assertIn("cannot be promoted automatically", model_fact_update_denied())
 
     def test_documentation_reviewer_completion_does_not_ingest_facts(self):
-        from test_documentation_policy import DocumentationCompletionGateTests
+        from tests.sandbox.core.test_documentation_policy import DocumentationCompletionGateTests
         state, _ = DocumentationCompletionGateTests().run_review()
         self.assertEqual(state["status"], "completed")
         self.assertFalse(any("approval" in key.lower() or "validation" in key.lower() for key in state))

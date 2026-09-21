@@ -842,3 +842,20 @@ deterministic suite passed 185/185 with 19 expected skips. A real local
 Ollama/Chroma fixture run retrieved only its own document; its complete
 `data/phase14_integration` fixture was deleted. GTA/global corpora, connected
 source, facts, knowledge, session data, Docker and Gradle remain untouched.
+
+## Phase 14.1 handover — completed 2026-09-21
+
+The Python test suite now lives under `tests/`: `sandbox/` for Mini Agent
+Sandbox contracts, `project_rag/` for generic registered-project/RAG contracts,
+and `integration/` for Docker or opt-in local-Ollama checks. The existing
+`tests/fixtures/kotlin-android` remains synthetic; GTA Cheats source, snapshots,
+RAG stores, model caches and runtime data are not test fixtures and must never
+be committed.
+
+All 38 root test modules were Git-renamed without deleting tests or changing
+production code. The ordinary command is now
+`python -m unittest discover -s tests -t . -v`; it passed 181 tests with 19
+expected skips. `python -m ruff check tests` passed. Docker and local-Ollama
+checks were intentionally not activated. Do not restore root-level compatibility
+wrappers; use fully-qualified module paths documented in `AGENTS.md` and
+`TESTS.md`.

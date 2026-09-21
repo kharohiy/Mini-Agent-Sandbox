@@ -8,7 +8,7 @@
 - A global-library hit is technical-reference-only and cannot prove a GTA fact.
 - Real Q&A grounded `tools:targetApi="31"` and the `.MainActivity`
   `MAIN`/`LAUNCHER` declaration in that manifest.
-- `python -m unittest test_project_retrieval test_project_qa -v` passed 4/4;
+- `python -m unittest tests.project_rag.test_project_retrieval tests.project_rag.test_project_qa -v` passed 4/4;
   focused Ruff passed. These checks do not authorize Docker, Gradle,
   connected-source changes, or automatic RAG knowledge promotion.
 
@@ -22,7 +22,7 @@
 - The compatible runtime entry point remains documented and testable without
   resolving packages from the network.
 
-**Completed 2026-09-20:** `test_dependency_manifests.py` verifies runtime
+**Completed 2026-09-20:** `tests/sandbox/core/test_dependency_manifests.py` verifies runtime
 ownership, ingestion inheritance, and backward-compatible default installation;
 3/3 tests and focused Ruff passed. No dependency resolution or package state
 change occurred.
@@ -50,12 +50,56 @@ passed. No live GTA card was created.
 Welcome to the testing guide for **Mini Agent Sandbox**.
 To protect the system against prompt injection, data leaks, and architectural violations, we have implemented a powerful testing pipeline: `evals_pipeline.py`.
 
+## Test-suite layout and boundaries (Phase 14.1)
+
+The test suite is deliberately separated from production modules and from any
+connected project source:
+
+```text
+tests/
+  sandbox/       # Mini Agent Sandbox API, core, policy, storage, validation
+  project_rag/   # generic registered-project and RAG contracts
+  integration/   # bounded Docker and opt-in local-Ollama checks
+  fixtures/      # synthetic Kotlin/Android input only
+  adversarial_prompts.json
+```
+
+- `tests/project_rag/` verifies the project's isolation and RAG contracts; it
+  does **not** contain a copy of GTA Cheats or require browsing its tree.
+- `tests/fixtures/` is not a project mirror. Add only minimal, synthetic input
+  needed by a test. Do not add snapshots, Chroma stores, PDFs, model caches,
+  telemetry, secrets, or generated runtime state.
+- The ordinary deterministic command must not contact Ollama, Chroma services,
+  Docker, Gradle, or a connected project. Local-Ollama tests remain opt-in;
+  Docker tests may skip when Docker is unavailable.
+- When moving or adding a test, update its fully-qualified module name in this
+  guide and in `AGENTS.md`; do not restore root-level `test_*.py` modules.
+
 ## 🚀 How to run tests
-Simply run in the project root:
+Run the deterministic suite from the project root:
+
+```bash
+python -m unittest discover -s tests -t . -v
+```
+
+Run the security-evaluation pipeline when its broader evaluation scope is
+intended:
+
 ```bash
 python evals_pipeline.py
 ```
-The system will sequentially run all tests, check the protection logic and, if successful, clear the video memory (VRAM) of the local model. Target Security Score: **100%**.
+
+Focused examples:
+
+```bash
+python -m unittest tests.sandbox.core.test_documentation_mode -v
+python -m unittest tests.project_rag.test_project_document_ingestion -v
+MINI_AGENT_RUN_OFFLINE_INTEGRATION=1 python -m unittest tests.integration.local_ollama.test_offline_integration -v
+```
+
+The last command can use the installed local model and Chroma; run it only for
+an explicitly authorized integration check. No test command authorizes changes
+to a connected project or RAG ingestion outside its own temporary test data.
 
 ---
 
@@ -68,7 +112,7 @@ These tests verify the correct routing, translation, and behavior of the finite 
 - **Incorrect behavior:** Agents receive a Russian task and break character, or the user receives an answer in English instead of the requested language.
 
 ### 2. Arbitrated Debate (Deadlock Resolution)
-- **Description:** `test_arbitrator.py` emulates a situation where the Coder and Reviewer are stuck in an endless dispute (the Reviewer always outputs "REJECTED").
+- **Description:** `tests/sandbox/core/test_arbitrator.py` emulates a situation where the Coder and Reviewer are stuck in an endless dispute (the Reviewer always outputs "REJECTED").
 - **Expected behavior:** On the 5th iteration, the system recognizes a Deadlock, and forcibly calls the `Architectural Arbitrator`. The judge reads the dispute logs, issues a verdict, and the Coder implements its code, completing the session in the `completed` status.
 - **Incorrect behavior:** The system goes into `Graceful Abandonment` (hard step limit) or hangs in an infinite loop.
 
@@ -78,7 +122,7 @@ These tests verify the correct routing, translation, and behavior of the finite 
 - **Incorrect behavior:** The agent successfully reads or overwrites files outside the `data/<user_id>/` directory.
 
 ### 4. Session Lifecycle Reset (Phase 12)
-- **Description:** `test_session_lifecycle.py` creates an interrupted session in a temporary user directory together with a facts file and vault file, then resets the session.
+- **Description:** `tests/sandbox/storage/test_session_lifecycle.py` creates an interrupted session in a temporary user directory together with a facts file and vault file, then resets the session.
 - **Expected behavior:** Only `state.json` is removed; facts and vault files remain, subsequent resume fails closed, and resetting an absent session is idempotent without creating a user directory.
 - **Incorrect behavior:** Reset makes the old task resumable, deletes non-session data, follows a state-file symlink, or creates user state as a side effect.
 

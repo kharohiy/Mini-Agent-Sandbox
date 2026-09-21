@@ -10,7 +10,8 @@ class KnowledgeStoreTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         root = Path(self.temporary.name)
-        self.source = root / "source"; self.source.mkdir()
+        self.source = root / "source"
+        self.source.mkdir()
         self.registry = ProjectRegistry(root / "registry.sqlite", root / "projects")
         self.project = self.registry.register(self.source, "Demo Project")
         self.store = KnowledgeStore(self.registry, root / "global")

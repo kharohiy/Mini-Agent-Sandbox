@@ -957,3 +957,16 @@ project facts or auto-promote into knowledge. Focused tests passed 26/26 and
 the full suite passed 185/185 with 19 expected skips. An isolated real local
 Ollama/Chroma fixture retrieved one project-document hit and was deleted; no
 live GTA or global RAG data changed.
+
+## Phase 14.1 completion note — 2026-09-21
+
+The post-Phase-14 test-suite structure now makes the isolation visible in the
+repository: Sandbox contracts are under `tests/sandbox/`, generic
+registered-project/RAG contracts under `tests/project_rag/`, and explicitly
+bounded Docker/local-Ollama checks under `tests/integration/`. The fixture tree
+contains only synthetic Kotlin/Android input. This is a repository-structure
+change, not a new GTA corpus, test project, memory tier, or RAG pipeline.
+
+All 38 root test modules were moved with Git-aware renames. New deterministic
+discovery passed 181 tests with 19 expected skips; Ruff passed for `tests/`.
+No production code or live state was modified.

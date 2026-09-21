@@ -3,9 +3,7 @@
 It is intentionally opt-in because it generates code; generated code must be
 validated by DockerSandboxExecutor, never executed by unittest on the host.
 """
-import io
 import os
-import sys
 import unittest
 
 

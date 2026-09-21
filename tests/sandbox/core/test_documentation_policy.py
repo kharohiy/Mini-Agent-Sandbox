@@ -1,6 +1,5 @@
 import copy
 import json
-from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -111,7 +110,7 @@ class DocumentationPolicyTests(unittest.TestCase):
 
 class DocumentationCompletionGateTests(unittest.TestCase):
     def run_review(self, document=DOC, verdict=None, mutate=False):
-        from test_documentation_transition import response
+        from tests.sandbox.core.test_documentation_transition import response
         with tempfile.TemporaryDirectory() as temp:
             storage = runner.SandboxStorage(temp)
             path = storage.resolve_workspace_path('docs', CONTRACT['artifact'])

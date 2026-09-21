@@ -26,7 +26,8 @@ class KnowledgeRagSyncTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         root = Path(self.temp.name)
-        source = root / "source"; source.mkdir()
+        source = root / "source"
+        source.mkdir()
         self.registry = ProjectRegistry(root / "registry.sqlite", root / "projects")
         self.project = self.registry.register(source, "Demo")
         self.store = KnowledgeStore(self.registry, root / "global")
