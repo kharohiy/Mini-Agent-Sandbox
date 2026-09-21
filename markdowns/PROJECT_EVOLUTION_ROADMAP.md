@@ -554,6 +554,39 @@ existing verified-card path remains the only indexing path. Focused Ruff and 11
 focused tests passed. No live GTA data, Docker, Gradle, model call, or training
 operation occurred.
 
+## Phase 13 — Deterministic context accounting
+
+**Status:** completed on 2026-09-21.
+
+Historical analysis item 13 remains open: both the router fallback and runner
+metrics calculate context through `chars / 4`. Phase 13 first audits locally
+installed counting capabilities and all consumers of this value. It may unify
+the counter only when model mapping and message framing are reproducible; the
+result must state whether it is exact or a conservative bound.
+
+No tokenizer package, asset download, model invocation, dependency-manifest
+change, or routing/prompt/budget-policy change is implied. A missing proven
+counter for the local Qwen model blocks implementation rather than permitting a
+guessed exact result. RAG, knowledge, session, vault, GTA, Docker, Gradle, and
+proposal/validation paths remain out of scope.
+
+Completion record: official Qwen assets on `E:` are revision/hash verified and
+produced the same 26-token count as one real Ollama request. Phase 13.1 then
+proved the installed Ollama 0.21.0 tool template against fixed local fixtures:
+declared schema 135, assistant tool call 52, and tool response 76. Shared
+accounting is exact only for those measured forms; unmeasured schemas/messages
+fall back explicitly. Focused tests passed 33/33; the full deterministic suite
+passed 178/178 with 15 expected skips; focused Ruff and `git diff --check`
+passed.
+
+Historical blocker record: the installed LiteLLM `token_counter` is locally stable on a
+fixed fixture but does not provide Qwen evidence. Its source maps the Ollama
+Qwen identifier to `gpt-3.5-turbo` and falls back to OpenAI `cl100k_base` with
+generic message framing. It cannot replace the estimate. Continuing requires
+an approved official-Qwen-tokenizer dependency plus clean-install acceptance,
+an opt-in documented Ollama tokenization integration, or a decision to retain
+the estimate.
+
 ## Phase 12 — Deterministic session lifecycle
 
 **Status:** completed on 2026-09-21.

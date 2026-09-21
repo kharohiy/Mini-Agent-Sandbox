@@ -1,3 +1,34 @@
+## Phase 13 handover — completed 2026-09-21
+
+Phase 13 is **deterministic context accounting**. The next open analysis item
+is number 13: `ModelRequest.context_tokens` and runner window metrics use the
+same undocumented `chars / 4` approximation. The phase may unify this into one
+model-aware counter or proven conservative bound, but only after auditing
+locally installed capabilities. It is not authorized to add a tokenizer,
+download assets, or call Ollama.
+
+Bounded audit result: with local-cost-map mode LiteLLM's counter is stable on a
+fixed fixture but it is not Qwen-exact. Its installed source maps the Ollama
+Qwen identifier to `gpt-3.5-turbo` and uses the OpenAI `cl100k_base` fallback;
+its message framing is not proof of Ollama/Qwen framing. It must not replace
+the current estimate. An initial import without local-cost-map mode attempted a
+GitHub price-map refresh, which was refused; subsequent calls were local only.
+No external request succeeded.
+
+The former blocked path required an official Qwen tokenizer
+dependency and clean-install acceptance, authorize an opt-in documented Ollama
+tokenization integration, or retain the estimate. Do not guess exact counts or
+change production code. Completion: approved Qwen assets on `E:` are
+hash-verified through `MINI_AGENT_QWEN_TOKENIZER_DIR`; one real Ollama request
+and offline rendering both counted 26 tokens. Runner/router exact mode covers
+supported text chats; tool-bearing/unsupported shapes retain fallback. Focused
+tests passed 28/28 and focused Ruff passed.
+
+Do not change providers, models, roles, prompts, routing/budget policy,
+dependencies, manifests, RAG/Chroma, facts, knowledge, session lifecycle,
+vaults, GTA source/profile, Docker, Gradle, patch/review/approval/validation,
+or live data. No LLM/model request, download, or installation is in scope.
+
 ## Phase 12 handover — completed 2026-09-21
 
 Phase 12 is **deterministic session lifecycle hardening**. The historical
@@ -746,3 +777,36 @@ Three candidates were Reviewer-rejected; none has approval or validation. The
 next blocker is a local `qwen2.5:14b` completion stall before first response.
 Diagnose that boundary without fake proposals, direct Android writes, apply, or
 pre-approval validation.
+## Phase 13.1 handover — completed 2026-09-21
+
+Phase 13.1 completed the deliberately deferred Qwen/Ollama tool-message
+accounting. `context_token_accounting.py` now uses the verified external Qwen
+tokenizer asset only with `MINI_AGENT_QWEN_TOKENIZER_DIR` and both SHA-256
+checks. The supported exact formats are fixed text chat (26 tokens), declared
+basic function schema (135), assistant tool call (52), and tool response (76).
+All other model identifiers, unmeasured message forms, and unfamiliar tool
+schema extensions remain visibly `legacy-estimate`; they are not labelled exact.
+
+The installed `qwen2.5:14b` Modelfile and Ollama 0.21.0 debug render were
+inspected. Its tool template prints a Go function structure rather than the
+incoming JSON verbatim. A one-token difference between that debug-rendered
+schema and the standalone tokenizer asset is calibrated only for the declared
+tool-schema path, against a real local `prompt_eval_count=135`; it does not
+apply to text or tool history. The runner creates `turn_tools` once and passes
+it to both the counter and completion call; `ModelRequest` forwards declared
+tools to the same counter.
+
+No RAG/Chroma, GTA source/profile, facts, knowledge, session data, Docker,
+Gradle, model weights, or tokenizer files in `E:` were changed. Verification:
+33 focused counter/router/manifest tests and the full deterministic suite
+(178 tests, 15 expected skips) passed; focused Ruff and `git diff --check`
+passed. A clean installation was not rerun: the direct
+`tokenizers` pin is manifest-covered, while the intentionally external model
+asset is optional and its absence safely selects fallback. Do not remove or
+replace the external asset; do not widen exact mode without new measured local
+fixtures.
+
+Next action after the user reviews this completed work is a focused commit and
+push for Phases 13/13.1, then a fresh Phase 14 planning audit. Phase 14 must
+reconcile its historical user-document RAG claim with the existing cascaded
+GTA project-code/global-library architecture before any implementation.

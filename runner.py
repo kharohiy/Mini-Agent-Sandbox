@@ -26,6 +26,7 @@ from model_router import (
     ModelProviderExhausted, ModelRequest, ModelRouter, PrivacyPolicy,
     QualityRequirement, TaskClass, get_default_model_router, safe_telemetry_metadata,
 )
+from context_token_accounting import count_context_tokens
 
 
 def configure_console_output():
@@ -1238,19 +1239,21 @@ def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=N
             project_proposal_recorded = False
             
             while True:
-                # Rough estimate of context volume
-                total_chars = sum(len(str(m.get("content", ""))) for m in messages)
-                approx_tokens = total_chars / 4
+                turn_tools = agent_tools_for_task_mode(
+                    task_mode, current_turn, state.get("proposal_step_id")
+                )
+                context_count = count_context_tokens(
+                    agent_config.get("model", "gemini/gemini-2.5-flash"), messages, turn_tools
+                )
                 m = state.setdefault("metrics", {})
                 max_tokens = m.setdefault("max_window_tokens", 1048576)
-                window_utilization_pct = (approx_tokens / max_tokens) * 100
+                m["last_context_count_mode"] = context_count.mode
+                window_utilization_pct = (context_count.tokens / max_tokens) * 100
                 
                 response = safe_llm_completion(
                     model=agent_config.get("model", "gemini/gemini-2.5-flash"),
                     messages=messages,
-                    tools=agent_tools_for_task_mode(
-                        task_mode, current_turn, state.get("proposal_step_id")
-                    ),
+                    tools=turn_tools,
                     user_id=user_id,
                     project_id=project_id,
                     task_tokens_used=int(m.get("total_tokens", 0)) + tokens_used,
@@ -1261,7 +1264,7 @@ def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=N
                     privacy_policy=routing_config.get("privacy_policy", "local_only"),
                     cloud_eligible=routing_config.get("cloud_eligible", False),
                     quality=routing_config.get("quality", "standard"),
-                    estimated_context_tokens=int(approx_tokens),
+                    estimated_context_tokens=context_count.tokens,
                     max_context_tokens=routing_config.get("max_context_tokens", 131072),
                     estimated_cost_usd=routing_config.get("estimated_cost_usd", 0.0),
                     budget_usd=routing_config.get("budget_usd", 0.0),

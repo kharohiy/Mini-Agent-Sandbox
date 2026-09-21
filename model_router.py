@@ -12,6 +12,8 @@ import os
 import time
 from typing import Any, Callable, Mapping, Protocol, Sequence
 
+from context_token_accounting import count_context_tokens
+
 
 DEFAULT_OLLAMA_COMPLETION_TIMEOUT_SECONDS = 600.0
 OLLAMA_COMPLETION_TIMEOUT_ENV = "MINI_AGENT_OLLAMA_TIMEOUT_SECONDS"
@@ -149,7 +151,7 @@ class ModelRequest:
     def context_tokens(self) -> int:
         if self.estimated_context_tokens is not None:
             return max(0, self.estimated_context_tokens)
-        return sum(len(str(message.get("content", ""))) for message in self.messages) // 4
+        return count_context_tokens(self.model, self.messages, self.extra_kwargs.get("tools")).tokens
 
     @property
     def request_tokens(self) -> int:

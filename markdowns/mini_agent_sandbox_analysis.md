@@ -816,6 +816,40 @@ not automate verification or indexing, treat a global book as GTA evidence, or
 train on model output. This narrows the remaining risk without reopening the
 codegen or validation workflows.
 
+## Phase 13 planning note — 2026-09-21
+
+Item 13 remains applicable after the completed dependency and session phases.
+`ModelRequest.context_tokens` falls back to `len(content) // 4`, and runner
+separately derives window utilisation from the same approximation. Phase 13
+will first audit whether an already installed, model-compatible local counter
+exists for the configured Qwen route. Only a reproducible counter or proven
+conservative bound may replace the approximation; no new tokenizer package,
+asset download, or model request is authorized by this plan.
+
+The phase must feed one result to the existing router and metric paths and test
+budget refusal before provider dispatch. Unknown model identifiers cannot be
+called exact. If a compatible counter cannot be established without changing
+the Phase 11 dependency contract, that is a blocker and production code stays
+unchanged.
+
+Completion record (2026-09-21): approved official Qwen assets on `E:` are
+hash-verified; exact offline rendering matched one actual Ollama count at 26.
+Phase 13.1 subsequently inspected the installed Ollama 0.21.0 Modelfile and
+debug-rendered prompt, then matched real local counts for declared tool schema
+(135), assistant tool call (52), and tool response (76). The runner/router
+exact path covers only these measured forms; unknown tool schemas and message
+shapes retain explicit fallback.
+
+Blocker record (2026-09-21): the local LiteLLM counter returned a stable value
+for a fixed `ollama/qwen2.5:14b` fixture but is not model-compatible proof. Its
+installed source maps the identifier to `gpt-3.5-turbo` and uses OpenAI
+`cl100k_base` fallback with generic message framing. Therefore it must not
+replace the approximation. No code changed; proceeding requires an approved
+official-Qwen-tokenizer dependency/clean-install path, an authorized Ollama
+tokenization integration, or retaining the current estimate.
+The local package/cache audit found only generic `tokenizers`/`tiktoken` and a
+non-Qwen `faster-whisper-tiny` cache; no Qwen tokenizer assets are available.
+
 ## Phase 12 planning note — 2026-09-21
 
 Historical item 12 is only partially current. Phase 7 already added a

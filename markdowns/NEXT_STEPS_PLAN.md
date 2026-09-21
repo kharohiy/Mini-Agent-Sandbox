@@ -1,3 +1,45 @@
+## Current checkpoint — Phases 13 and 13.1 completed
+
+**Status:** completed on 2026-09-21; await review, then commit and push.
+
+**Scope:** audit and, only if proven locally reproducible, replace the shared
+`chars / 4` approximation used by the router context gate and runner metrics
+with one model-aware counter or documented conservative bound. It must include
+message framing and completion reserve, and distinguish exact count from a
+bound.
+
+**Acceptance:** focused fake-based tests prove one count is used for the
+router decision and utilisation metric, limits refuse before provider dispatch,
+and unknown models do not claim exact counting. A missing proven local counter
+is a valid blocker; code remains unchanged until a separate dependency decision
+is authorized.
+
+**Observed completion:** approved hash-verified Qwen assets on `E:` yielded an
+offline count of 26, matching one real Ollama `prompt_eval_count=26`. The shared
+runner/router path is exact for measured text, declared-tool schema,
+assistant-tool-call, and tool-response formats (26/135/52/76). Unmeasured
+tool schemas and message shapes retain fallback. Focused tests passed 33/33;
+the full deterministic suite passed 178/178 with 15 expected skips; focused
+Ruff and `git diff --check` passed.
+
+**Out of scope:** providers/models/roles/prompts/privacy/fallbacks/budget
+values; package or manifest changes; downloads; Ollama; RAG/Chroma; facts,
+knowledge, session state, vaults; GTA; Docker; Gradle; and patch/review/
+approval/validation workflows.
+
+See `PHASE13_PREPARATION.md`, `PHASE13_CONTINUATION_PROMPT.md`,
+`PHASE13_1_PREPARATION.md`, and `PHASE13_1_CONTINUATION_PROMPT.md`.
+
+**Observed blocker:** LiteLLM's installed `token_counter` is deterministic on
+a fixed fixture but maps `ollama/qwen2.5:14b` to `gpt-3.5-turbo` and falls back
+to OpenAI `cl100k_base`; it is not a Qwen-exact tokenizer or proved Ollama chat
+framing. It cannot replace the estimate. The next decision is: approve an
+official Qwen tokenizer/dependency and clean-install acceptance, authorize an
+opt-in documented Ollama tokenization run, or retain the estimate.
+The local environment has generic `tokenizers`/`tiktoken` but no Qwen tokenizer
+assets (and no `transformers` or `sentencepiece`), so it supplies no alternate
+exact counter.
+
 ## Phase 12 — completed 2026-09-21
 
 **Status:** completed on 2026-09-21.

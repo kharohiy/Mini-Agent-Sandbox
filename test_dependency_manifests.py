@@ -27,7 +27,10 @@ class DependencyManifestTests(unittest.TestCase):
         runtime = manifest_entries("requirements-runtime.txt")
         self.assertEqual(
             runtime,
-            {"litellm", "fastapi", "pydantic", "uvicorn", "chromadb", "cryptography", "flashrank"},
+            {
+                "litellm", "fastapi", "pydantic", "uvicorn", "chromadb",
+                "cryptography", "flashrank", "tokenizers",
+            },
         )
 
     def test_ingestion_inherits_runtime_and_adds_only_pdf_dependencies(self):
