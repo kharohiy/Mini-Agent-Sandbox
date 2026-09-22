@@ -554,6 +554,28 @@ data/<user_id>/vault.key
 
 **P0/P1.**
 
+### Phase 16 current-state reconciliation — 2026-09-22
+
+The historical issue remains the governing security requirement, but the
+checked source now has a validated `get_user_vault()` factory that creates
+separate `data/<user_id>/.vault` and `.vault_key` files, plus temporary-fixture
+tests for cross-user isolation. Phase 16 is therefore a bounded persistence,
+call-site and compatibility audit—not permission to assume a global vault or
+to migrate live encrypted data. The desired `vault.enc` / `vault.key` layout
+requires a non-destructive legacy decision and conflict-fail-closed tests.
+
+### Phase 16 completion — 2026-09-22
+
+The implementation keeps the historical requirement while reconciling it with
+the existing tenant factory. It establishes canonical `vault.enc` / `vault.key`
+files, non-destructive validated copying from complete legacy hidden pairs,
+atomic per-file writes and fail-closed handling for incomplete, malformed,
+symlinked and divergent pairs. Runner/Guardrail production call sites were
+audited as factory-only. Focused Vault/guardrail tests passed 17/17 with one
+expected Windows real-symlink fixture skip; a deterministic mock independently
+covers the refusal branch. Full deterministic verification passed 197 tests
+with 20 expected skips. No live vault was inspected or migrated.
+
 ---
 
 # 17. `resolve_secrets()` слишком мощный слой
@@ -960,8 +982,9 @@ conversation remains session-only memory, and new documents receive their own
 `project-document` trust/scope rather than becoming code evidence or knowledge.
 LLM output, conversations, book passages and supplemental docs cannot
 auto-promote. The plan grants no permission to write, migrate, re-index, or
-delete live RAG. Full design, blockers, and acceptance criteria are in
-`PHASE14_PREPARATION.md`.
+delete live RAG. The obsolete standalone preparation file was intentionally
+removed after completion; this analysis and the roadmap retain the design,
+blockers and acceptance criteria.
 
 Completion record (2026-09-21): Phase 14 added a separate project-document
 collection and explicit project-bound text/Markdown ingestion contract. It is

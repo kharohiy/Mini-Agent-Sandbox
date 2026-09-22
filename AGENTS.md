@@ -17,7 +17,7 @@ non-trivial change, read it in this order:
 4. `markdowns/PROJECT_EVOLUTION_ROADMAP.md` — approved milestones.
 5. `markdowns/TESTS.md` — security-test scenarios.
 6. The active phase files in `markdowns/` (currently
-   `PHASE15_PREPARATION.md` and `PHASE15_CONTINUATION_PROMPT.md`).
+   `PHASE16_PREPARATION.md` and `PHASE16_CONTINUATION_PROMPT.md`).
 7. `markdowns/mini_agent_sandbox_analysis.md` when architectural context is
    needed.
 

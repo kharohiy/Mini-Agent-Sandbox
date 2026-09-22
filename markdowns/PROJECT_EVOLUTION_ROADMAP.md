@@ -651,8 +651,9 @@ technical reference.
 
 The phase excludes corpus rebuilds, legacy migration/deletion, conversation or
 model-output ingestion, automatic knowledge promotion/training, and changes to
-GTA source, models, policies, Docker, Gradle, validation or approval. See
-`PHASE14_PREPARATION.md` for blockers and acceptance evidence.
+GTA source, models, policies, Docker, Gradle, validation or approval. The
+obsolete standalone Phase 14 preparation file was intentionally removed; this
+roadmap retains the blockers and acceptance evidence.
 
 Completion record: explicit request-body text/Markdown ingestion is bounded,
 confirmed, checksum-backed and project-bound; its separate document collection
@@ -679,7 +680,7 @@ production behaviour and does not activate Docker or Ollama integration.
 
 ## Phase 15 — Structured secret/PII detection and prompt-injection separation
 
-**Status:** completed locally on 2026-09-22; awaiting commit and push.
+**Status:** completed and pushed as part of `1b0a402` on 2026-09-22.
 
 The historical analysis correctly identifies that the current DataGuardrail is
 a five-rule regex/context masker, not comprehensive secret classification and
@@ -718,3 +719,32 @@ only the `LAUNCHER` chunk. The bounded Phase 9 correction assembles only the
 already selected literal source and preserves it through fusion. The same real
 question now passes with `.MainActivity`; no source access or corpus
 re-indexing occurred.
+
+## Phase 16 — Tenant-scoped persistent Vault
+
+**Status:** completed locally on 2026-09-22; awaiting commit and push.
+
+The historical analysis correctly requires that encrypted secrets and keys are
+not shared process-wide. Current-source reconciliation found that
+`get_user_vault()` already validates the tenant ID and uses separate hidden
+files under `data/<user_id>/`; this is partial/core remediation rather than a
+reason to skip a persistence and compatibility audit. Phase 16 will establish
+one explicit, tested per-user contract, targeting `vault.enc` and `vault.key`
+only if a safe non-destructive compatibility route is approved.
+
+The phase must audit all vault constructors and Runner/Guardrail calls; test
+cross-tenant decryption denial, fresh-instance persistence, path validation,
+symlink rejection, and legacy/canonical conflict handling using temporary
+directories. It must not inspect or migrate live vaults, reveal a secret, add
+a KMS/dependency, or alter secret-resolution authority, RAG, GTA, Docker,
+Gradle, models, roles, validation or approval.
+
+Completion: canonical `vault.enc` / `vault.key` files are scoped below the
+validated tenant directory. Complete legacy hidden pairs are decrypted and
+copied only into an absent canonical pair, without deletion; canonical entries
+may safely extend that preserved same-key legacy mapping. Incomplete,
+non-regular, symlinked and divergent pairs fail closed, and writes are atomic
+per file. Focused Vault/guardrail tests passed 17/17 with one expected Windows
+real-symlink fixture skip; a deterministic mock independently covers symlink
+refusal. The deterministic suite passed 197 tests with 20 expected skips. No
+live vault data was inspected or migrated.

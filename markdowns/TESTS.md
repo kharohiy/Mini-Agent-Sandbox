@@ -27,6 +27,20 @@
   injection prevention. The tag boundary is compatibility-only and separate
   from secret/PII classification.
 
+## Phase 16 Vault-isolation tests — completed 2026-09-22
+
+- `tests/sandbox/policy/test_vault_isolation.py` now covers persisted
+  cross-tenant isolation, fresh-instance recovery, canonical paths, safe
+  legacy copying, canonical/legacy conflict, incomplete-pair re-key refusal,
+  non-regular files, unsafe IDs and symlink rejection.
+- Focused Vault/guardrail tests passed 17/17 with one expected Windows real-
+  symlink fixture skip because this process cannot create one. A deterministic
+  mock test independently covers the symlink-refusal branch without elevated
+  permissions. The full deterministic suite passed 197 tests with 20 expected
+  skips.
+- Tests use temporary roots only, contain no real secrets, and do not call
+  Ollama, Chroma, Docker, Gradle, or a KMS.
+
 ## GTA read-only Q&A baseline — rechecked 2026-09-22
 
 - `python project_qa.py gta-cheats--cc0fe5de "What tools:targetApi is declared in app/src/main/AndroidManifest.xml?"`

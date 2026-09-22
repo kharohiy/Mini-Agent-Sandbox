@@ -808,7 +808,7 @@ fixtures.
 
 Phases 13/13.1 were committed and pushed as `ffd0fd0` on 2026-09-21.
 
-## Phase 14 handover — planned, awaiting authorization
+## Phase 14 historical planning record — superseded by completion
 
 The authoritative source is item 14 of `mini_agent_sandbox_analysis.md`:
 legacy per-user vector RAG has an append helper but no explicit main-loop
@@ -818,11 +818,12 @@ already separate. Phase 14 may add only an explicit project-bound supplemental
 document collection and pipeline; it must not turn the old legacy collection
 into a catch-all memory.
 
-Read `PHASE14_PREPARATION.md` and `PHASE14_CONTINUATION_PROMPT.md`. Do not
-start code changes until the user authorizes implementation. Do not re-index
-GTA/global corpora, ingest conversation/model output/facts, train a model,
-auto-promote knowledge, modify connected source, or change policies, Docker,
-Gradle, providers, roles, approval, or validation.
+This record predates the completed implementation below. The obsolete Phase 14
+preparation/continuation files were intentionally removed; use the completion
+record, roadmap and analysis for historical detail. Its original boundaries
+remain: no corpus re-indexing, conversation/model-output ingestion, automatic
+knowledge promotion, connected-source changes, or policy/Docker/Gradle/provider
+workflow changes.
 
 ## Phase 14 handover — completed 2026-09-21
 
@@ -918,3 +919,37 @@ corpus, or expand source assembly beyond its bounded selected-source contract
 without separate scope and acceptance tests. The full deterministic suite
 passed 190 tests with 19 expected skips; changed retrieval files pass Ruff.
 All temporary output was removed after the run.
+
+## Phase 16 handover — planned 2026-09-22
+
+Phase 16 addresses analysis item 16: persistent Vault isolation must be
+explicit and tenant-scoped. Reconciliation already found that the checked
+source has `get_user_vault(user_id)` with validated IDs and separate
+`data/<user_id>/.vault` / `.vault_key` files. Do not treat the historical
+global-vault description as authorization to rename or migrate live data.
+
+Start only from `PHASE16_PREPARATION.md` and
+`PHASE16_CONTINUATION_PROMPT.md` after implementation approval. Audit every
+constructor and persistence call first. Any filename migration to the desired
+`vault.enc` / `vault.key` layout must be same-user, conflict-fail-closed,
+verified, and non-destructive; live migration needs separate operational
+approval. Use temporary fixtures only. Do not log/decrypt live secrets, add a
+KMS/dependency, change secret-resolution authority, or touch RAG/GTA/Docker/
+Gradle/models/policy/roles/approval/validation/task state/facts.
+
+## Phase 16 handover — completed locally 2026-09-22
+
+The audit confirmed that production Runner and Guardrail call sites use
+`get_user_vault()`; no direct production `VaultRegistry` construction was
+found. Canonical tenant files are now `vault.enc` and `vault.key`. Complete
+legacy hidden pairs are first decrypted, then copied only when canonical files
+are absent; they are not deleted. A same-key canonical mapping may extend the
+legacy mapping, but divergent pairs, incomplete pairs, invalid file types and
+symlinks fail closed. Existing encrypted vaults cannot be silently re-keyed.
+
+Focused Vault/guardrail tests passed 17/17 with one expected Windows real-
+symlink fixture skip; a deterministic mock independently covers symlink
+refusal without Windows privileges. The full deterministic suite passed 197
+tests with 20 expected skips. No live vault/RAG/GTA/model/Docker/Gradle data
+was touched. Do not run a live migration or delete legacy files without a
+separate backup-first operational approval.

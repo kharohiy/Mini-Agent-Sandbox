@@ -1,9 +1,21 @@
-## Current checkpoint — Phase 15 completed
+## Current checkpoint — Phase 16 completed locally
 
 **Status:** Phases 13/13.1 were committed and pushed as `ffd0fd0`; Phase 14
 was committed and pushed as `c563cd4`; and Phase 14.1 was committed and pushed
-as `dfae390` on 2026-09-21. Phase 15 is complete locally and awaits review,
-commit, and push.
+as `dfae390` on 2026-09-21. Phase 15 plus the bounded Phase 9 retrieval
+hotfix were committed and pushed as `1b0a402` on 2026-09-22. Phase 16 is
+complete locally and awaits review, commit and push.
+
+**Phase 16 scope — completed:** analysis item 16 was reconciled with the
+existing tenant factory and completed with an explicit canonical
+`data/<user_id>/vault.enc` / `vault.key` contract. Complete legacy hidden
+pairs are validated then non-destructively copied only when canonical files are
+absent; incomplete, malformed, symlinked or divergent pairs fail closed.
+Focused Vault/guardrail tests passed 17/17 with one expected Windows real-
+symlink fixture skip; a separate deterministic mock test covers symlink
+refusal without Windows privileges. The full deterministic suite passed 197
+tests with 20 expected skips. No KMS, dependency, model, RAG, GTA, Docker or
+Gradle work occurred.
 
 **Phase 15 scope — completed:** secret/PII classification is separated from prompt-injection
 handling. Replace the current five-rule regex/context heuristic with structured
@@ -12,8 +24,9 @@ compatibility. Markup sanitisation remains a separately labelled limited
 boundary, not a claim of complete injection protection. No dependencies, live
 model/evals, RAG, GTA, Docker or Gradle are in scope. See
 `PHASE15_PREPARATION.md` and `PHASE15_CONTINUATION_PROMPT.md`. Focused tests
-passed 10/10; the full deterministic suite passed 188 tests with 19 expected
-skips. External scanner adoption remains a separate dependency decision.
+passed 10/10; after the Phase 9 hotfix the full deterministic suite passed 190
+tests with 19 expected skips. External scanner adoption remains a separate
+dependency decision.
 
 **Post-phase live result:** real local Ollama/Chroma component integration
 passed 1/1. A separate actual offline `runner.py` loop in a disposable `E:`
@@ -64,7 +77,9 @@ values; package or manifest changes; downloads; Ollama; RAG/Chroma; facts,
 knowledge, session state, vaults; GTA; Docker; Gradle; and patch/review/
 approval/validation workflows.
 
-See `PHASE14_PREPARATION.md` and `PHASE14_CONTINUATION_PROMPT.md`.
+The obsolete standalone Phase 14 planning files were intentionally removed;
+its historical completion and constraints remain recorded in the roadmap and
+analysis.
 
 **Observed blocker:** LiteLLM's installed `token_counter` is deterministic on
 a fixed fixture but maps `ollama/qwen2.5:14b` to `gpt-3.5-turbo` and falls back
