@@ -7,6 +7,7 @@ from unittest.mock import patch
 from project_registry import ProjectRegistry
 from project_retrieval import (
     _chroma_hits,
+    _fuse_project_hits,
     _literal_project_hits,
     format_retrieval_context,
     retrieve_global_technical_references,
@@ -29,6 +30,25 @@ class Collection:
 
     def get(self, **kwargs):
         return {"documents": [self.document], "metadatas": [self.metadata]}
+
+
+class MultiChunkCollection:
+    def __init__(self, records):
+        self.records = records
+
+    def count(self):
+        return len(self.records)
+
+    def get(self, **kwargs):
+        where = kwargs.get("where", {})
+        records = [
+            record for record in self.records
+            if all(record["metadata"].get(key) == value for key, value in where.items())
+        ]
+        return {
+            "documents": [record["document"] for record in records],
+            "metadatas": [record["metadata"] for record in records],
+        }
 
 
 class FakeRagService:
@@ -93,6 +113,60 @@ class ProjectRetrievalTests(unittest.TestCase):
         )
         self.assertEqual([hit["source"] for hit in hits], ["app/src/main/AndroidManifest.xml"])
         self.assertGreaterEqual(hits[0]["lexical_matches"], 2)
+
+    def test_literal_project_match_assembles_adjacent_chunks_from_selected_source(self):
+        collection = MultiChunkCollection([
+            {
+                "document": (
+                    '<activity android:name=".MainActivity">\n'
+                    '<intent-filter><action android:name="android.intent.action.MAIN" />'
+                ),
+                "metadata": {
+                    "source": "app/src/main/AndroidManifest.xml",
+                    "module": ":app",
+                    "chunk_index": 0,
+                },
+            },
+            {
+                "document": (
+                    '<category android:name="android.intent.category.LAUNCHER" />'
+                    "</intent-filter></activity>"
+                ),
+                "metadata": {
+                    "source": "app/src/main/AndroidManifest.xml",
+                    "module": ":app",
+                    "chunk_index": 1,
+                },
+            },
+            {
+                "document": "class OtherActivity",
+                "metadata": {"source": "app/OtherActivity.kt", "module": ":app", "chunk_index": 0},
+            },
+        ])
+        hits = _literal_project_hits(
+            collection,
+            "Which activity is declared with MAIN and LAUNCHER in the Android manifest?",
+            1,
+        )
+        self.assertEqual(hits[0]["source"], "app/src/main/AndroidManifest.xml")
+        self.assertIn('android:name=".MainActivity"', hits[0]["text"])
+        self.assertIn("android.intent.action.MAIN", hits[0]["text"])
+        self.assertIn("android.intent.category.LAUNCHER", hits[0]["text"])
+        self.assertNotIn("OtherActivity", hits[0]["text"])
+
+    def test_fusion_keeps_selected_source_assembly_over_semantic_tail_chunk(self):
+        semantic = [{
+            "scope": "project-code", "source": "app/src/main/AndroidManifest.xml",
+            "text": "android.intent.category.LAUNCHER", "semantic_distance": 0.1,
+        }]
+        exact = [{
+            "scope": "project-code", "source": "app/src/main/AndroidManifest.xml",
+            "text": "android:name=\".MainActivity\" android.intent.action.MAIN android.intent.category.LAUNCHER",
+            "lexical_matches": 3,
+        }]
+        hits = _fuse_project_hits("MainActivity MAIN LAUNCHER", exact, semantic, 1)
+        self.assertIn(".MainActivity", hits[0]["text"])
+        self.assertIn("android.intent.action.MAIN", hits[0]["text"])
 
     def test_pending_project_document_is_not_retrieved(self):
         pending = Collection("uncommitted document", {"source": "notes.md", "ingestion_status": "pending"})

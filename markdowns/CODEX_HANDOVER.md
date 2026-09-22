@@ -859,3 +859,62 @@ expected skips. `python -m ruff check tests` passed. Docker and local-Ollama
 checks were intentionally not activated. Do not restore root-level compatibility
 wrappers; use fully-qualified module paths documented in `AGENTS.md` and
 `TESTS.md`.
+
+## Phase 15 handover — in progress 2026-09-22
+
+Phase 15 addresses analysis item 15: `DataGuardrail` currently combines a
+small regex/context secret masker with tag deletion. The work separates these
+threat classes. The permitted implementation is a standard-library structured
+SecretScanner with provider rules and context-gated entropy, plus a separately
+named, compatibility-only prompt-injection boundary. Preserve
+`DataGuardrail.run()` and existing vault token persistence.
+
+Do not install or invoke an external scanner, scan live data, run local models
+or evals, touch RAG/GTA/Docker/Gradle, alter vault paths, log plaintext values,
+or change `resolve_secrets()`/tool authority. Prompt-injection protection must
+not be described as complete. Read `PHASE15_PREPARATION.md` and
+`PHASE15_CONTINUATION_PROMPT.md` before implementation.
+
+## Phase 15 handover — completed 2026-09-22
+
+`secret_scanner.py` replaces the single pass with plaintext-free structured
+findings, provider-first overlap selection, provider detectors, generic
+credential assignment detection and context-gated Shannon entropy. Existing
+OpenAI-style/AWS/email/IPv4 masking remains, while GitHub, GitLab, Slack,
+Stripe and private-key blocks are now bounded provider rules.
+
+`prompt_injection.py` separately owns the legacy paired-tag removal. It is a
+compatibility boundary only, creates no vault mappings, and is not claimed as
+general prompt-injection prevention. `DataGuardrail.run()` and tenant-scoped
+vault token persistence remain compatible. Focused guardrail/vault tests passed
+10/10; the full deterministic suite passed 188 with 19 expected skips; Ruff
+and diff checks passed. No dependency, model/evals, Docker, RAG/GTA, Gradle or
+live vault data was used. Do not add an external scanner or widen provider
+patterns without a new reviewed dependency/scope decision.
+
+Post-phase real integration (2026-09-22): real temporary Ollama/Chroma
+component integration passed 1/1. An actual offline `runner.py` process in a
+new disposable `E:` copy masked a synthetic GitHub-shaped token before its
+`state.json` write, but remained `in_progress` after 3 turns and 10 tool
+executions, producing unnecessary isolated workspace files. It was terminated;
+the whole copy (including state/vault/artifacts) was deleted and loaded models
+were explicitly unloaded. Full agent-loop completion is not accepted. Treat
+the observed loop nondeterminism as an operational blocker requiring a separate
+bounded diagnosis, not as evidence to weaken security/tool limits.
+
+Correct GTA baseline validation (2026-09-22): use only the saved Android/GTA
+RAG questions, not a generic Python task. The real local Analyst→Reviewer
+`tools:targetApi="31"` manifest question passed. The `MainActivity`
+`MAIN`/`LAUNCHER` manifest question did not. Read-only Chroma audit found two
+adjacent manifest chunks: one contains `.MainActivity` and `MAIN`, the other
+contains `LAUNCHER`; current retrieval supplied only the latter. Analyst and
+Reviewer correctly declined to infer a fact absent from their evidence. Treat
+this as historical fail-closed evidence. The bounded Phase 9 correction is now
+implemented and accepted: literal selection assembles only that selected
+source's stored chunks, and fusion preserves the assembly over a semantic tail
+chunk. The same real Android question now names `.MainActivity` in both
+answers. Do not weaken grounding, edit the connected source, re-index the
+corpus, or expand source assembly beyond its bounded selected-source contract
+without separate scope and acceptance tests. The full deterministic suite
+passed 190 tests with 19 expected skips; changed retrieval files pass Ruff.
+All temporary output was removed after the run.

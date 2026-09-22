@@ -14,6 +14,36 @@
 
 ## Phase 10 evidence-promotion tests — completed 2026-09-20
 
+## Phase 15 guardrail-classification tests — completed 2026-09-22
+
+- `tests/sandbox/policy/test_data_guardrail.py` covers existing PII/AWS
+  masking, GitHub/GitLab/Slack/Stripe values, private keys, generic credentials,
+  provider-first overlap selection, context-gated entropy, tenant separation,
+  and the lack of vault side effects in the markup compatibility boundary.
+- Run `python -m unittest tests.sandbox.policy.test_data_guardrail -v` for the
+  focused suite. It is local and deterministic; it must not call a model,
+  Docker, RAG service or external scanner.
+- Prompt-injection tests must not be represented as proof of complete prompt
+  injection prevention. The tag boundary is compatibility-only and separate
+  from secret/PII classification.
+
+## GTA read-only Q&A baseline — rechecked 2026-09-22
+
+- `python project_qa.py gta-cheats--cc0fe5de "What tools:targetApi is declared in app/src/main/AndroidManifest.xml?"`
+  passed with `tools:targetApi="31"` in both real local Analyst and Reviewer
+  answers.
+- The saved `MainActivity` `MAIN`/`LAUNCHER` manifest question initially
+  failed closed because Chroma stores the declaration in adjacent chunks and
+  retrieval supplied only the `LAUNCHER` tail. The bounded source-assembly
+  correction now supplies the selected manifest's stored chunks together; the
+  same real Analyst→Reviewer question passed with `.MainActivity`.
+- `tests.project_rag.test_project_retrieval` includes deterministic coverage
+  for adjacent selected-source assembly and for fusion retaining that assembly
+  instead of a semantic tail chunk.
+- These checks are read-only for Android source and RAG corpus. They may add
+  payload-free project telemetry; they must not trigger re-indexing, source
+  changes, Docker or Gradle.
+
 ## Phase 11 dependency-manifest tests — completed
 
 - Every direct runtime import has a declared runtime dependency.

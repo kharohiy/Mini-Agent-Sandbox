@@ -108,10 +108,38 @@ def _literal_project_hits(collection, query: str, limit: int) -> list[dict]:
         previous = best_by_source.get(source)
         if previous is None or candidate["lexical_matches"] > previous["lexical_matches"]:
             best_by_source[source] = candidate
-    return sorted(
+    selected = sorted(
         best_by_source.values(),
         key=lambda hit: (-hit["lexical_matches"], hit["source"]),
     )[:limit]
+    return [_assemble_selected_source(collection, hit) for hit in selected]
+
+
+def _assemble_selected_source(collection, hit: dict, *, maximum_characters: int = 6000) -> dict:
+    """Attach bounded, ordered chunks for one already-selected literal source.
+
+    Literal matching identifies a source but may land on a tail chunk.  Android
+    manifest declarations commonly span an activity tag and its intent-filter,
+    so passing only that tail would make a grounded answer artificially
+    incomplete.  This expands only the chosen project-code source; it neither
+    changes source selection nor reads the connected project tree.
+    """
+    source = hit["source"]
+    result = collection.get(
+        where={"source": source}, include=["documents", "metadatas"], limit=32,
+    )
+    pairs = list(zip(
+        result.get("documents", []) or [],
+        result.get("metadatas", []) or [],
+    ))
+    if not pairs:
+        return hit
+    chunks = sorted(
+        enumerate(pairs),
+        key=lambda item: (item[1][1].get("chunk_index", item[0]), item[0]),
+    )
+    text = "\n".join(chunk for _, (chunk, _) in chunks)[:maximum_characters]
+    return hit | {"text": text} if text.strip() else hit
 
 
 def _query_terms(query: str) -> set[str]:
@@ -137,6 +165,10 @@ def _fuse_project_hits(query: str, exact: list[dict], semantic: list[dict], limi
         text_terms = set(re.findall(r"[a-z0-9]+", hit["text"].casefold()))
         lexical_matches = len(terms.intersection(text_terms))
         entry = candidates.setdefault(key, hit | {"retrieval_score": 0.0})
+        # Keep semantic ranking, but prefer the bounded source assembly when
+        # lexical retrieval selected this same source.  Otherwise a semantic
+        # tail chunk can discard the adjacent evidence assembled above.
+        entry["text"] = hit["text"]
         entry["retrieval_score"] += 1.0 + lexical_matches
         entry["lexical_matches"] = lexical_matches
     return sorted(

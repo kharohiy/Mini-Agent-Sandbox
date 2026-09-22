@@ -676,3 +676,45 @@ The supported deterministic command is
 `python -m unittest discover -s tests -t . -v`. It passed 181 tests with 19
 expected skips, and `python -m ruff check tests` passed. This phase changes no
 production behaviour and does not activate Docker or Ollama integration.
+
+## Phase 15 — Structured secret/PII detection and prompt-injection separation
+
+**Status:** completed locally on 2026-09-22; awaiting commit and push.
+
+The historical analysis correctly identifies that the current DataGuardrail is
+a five-rule regex/context masker, not comprehensive secret classification and
+not prompt-injection protection. Phase 15 introduces a deterministic,
+standard-library structured finding layer: bounded provider-specific detectors,
+credential-context checks and entropy as corroborating signal. The public
+masking/vault contract remains compatible.
+
+Prompt injection is a distinct threat class. Existing tag-only handling will
+be placed behind a separately named compatibility boundary and will not be
+represented as complete protection. External structured-scanner adoption is a
+later explicit dependency decision. No model/evals, RAG, GTA, Docker, Gradle,
+vault-path or secret-resolution authority changes are authorised.
+
+Completion record: `secret_scanner.py` supplies plaintext-free structured
+findings, provider-first overlap handling, existing and bounded new provider
+rules, generic credential detection and context-gated Shannon entropy.
+`prompt_injection.py` holds the legacy tag-only compatibility boundary. Focused
+guardrail/vault tests passed 10/10; the full deterministic suite passed 188
+tests with 19 expected skips. No external scanner dependency, model/evals,
+RAG/GTA, Docker, Gradle or live vault data was used.
+
+Post-phase live evidence: real Ollama/Chroma component integration passed 1/1.
+An actual offline runner loop in a disposable `E:` copy masked its synthetic
+GitHub-shaped token before state persistence but remained `in_progress` after
+three turns and ten tool executions. The process and entire copy were removed.
+The deterministic Phase 15 contract remains complete; full model-driven agent
+loop acceptance is blocked by this observed nondeterminism and must not be
+claimed.
+
+Correct GTA baseline validation after Phase 15 found a separate existing-style
+acceptance issue: the real local `tools:targetApi="31"` Analyst→Reviewer answer
+passed, but the `MainActivity` `MAIN`/`LAUNCHER` answer initially failed closed.
+Chroma contains both facts in adjacent manifest chunks while retrieval supplied
+only the `LAUNCHER` chunk. The bounded Phase 9 correction assembles only the
+already selected literal source and preserves it through fusion. The same real
+question now passes with `.MainActivity`; no source access or corpus
+re-indexing occurred.

@@ -516,6 +516,21 @@ structured secret scanner
 
 Prompt injection нужно рассматривать как отдельный класс угроз, а не как часть secret masking.
 
+## Phase 15 completion note — 2026-09-22
+
+The bounded implementation replaces the prior five-rule sequential matcher
+with `secret_scanner.py`: plaintext-free structured findings, provider-first
+non-overlap handling, bounded provider detectors, credential-context generic
+detectors and Shannon entropy only as corroborating signal. `DataGuardrail`
+retains its public tokenisation/vault facade. `prompt_injection.py` now owns
+the historical paired-tag removal separately and is explicitly not a complete
+injection defence.
+
+Focused guardrail/vault tests passed 10/10 and the full deterministic suite
+passed 188 tests with 19 expected skips. No external scanner was installed;
+adoption of a maintained scanner requires a separate dependency review. No
+live model, RAG, GTA, Docker, Gradle or vault data was used.
+
 ---
 
 # 16. Vault архитектурно глобальный
@@ -970,3 +985,21 @@ change, not a new GTA corpus, test project, memory tier, or RAG pipeline.
 All 38 root test modules were moved with Git-aware renames. New deterministic
 discovery passed 181 tests with 19 expected skips; Ruff passed for `tests/`.
 No production code or live state was modified.
+
+## Phase 15 post-phase integration note — 2026-09-22
+
+The installed local Ollama/Chroma component test passed 1/1. One actual offline
+runner loop in a disposable `E:` copy correctly masked a synthetic GitHub-shaped
+token before state persistence, but remained `in_progress` after 3 turns and
+10 tool calls. The process, copy and loaded models were cleaned up. This is an
+operational loop-nondeterminism blocker; it does not justify weaker secret
+handling or a claim of complete end-to-end acceptance.
+
+Correct GTA baseline recheck (2026-09-22): the local Analyst→Reviewer
+`tools:targetApi="31"` manifest question passed. The historical `MainActivity`
+`MAIN`/`LAUNCHER` baseline initially failed closed because Chroma stores the
+declaration in two adjacent chunks but retrieval supplied only the `LAUNCHER`
+tail. A focused Phase 9 correction now assembles bounded chunks only for the
+already selected literal source and retains them through semantic fusion. The
+same real question then passed with `.MainActivity`; this was not a reason to
+infer the missing fact, change connected source, or re-index the corpus.

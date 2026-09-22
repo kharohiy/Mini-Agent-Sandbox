@@ -1,8 +1,34 @@
-## Current checkpoint — Phases 14 and 14.1 completed
+## Current checkpoint — Phase 15 completed
 
 **Status:** Phases 13/13.1 were committed and pushed as `ffd0fd0`; Phase 14
-was committed and pushed as `c563cd4` on 2026-09-21. Phase 14.1 is completed
-locally and awaits review, commit, and push.
+was committed and pushed as `c563cd4`; and Phase 14.1 was committed and pushed
+as `dfae390` on 2026-09-21. Phase 15 is complete locally and awaits review,
+commit, and push.
+
+**Phase 15 scope — completed:** secret/PII classification is separated from prompt-injection
+handling. Replace the current five-rule regex/context heuristic with structured
+findings, provider detectors and context-gated entropy while preserving masking
+compatibility. Markup sanitisation remains a separately labelled limited
+boundary, not a claim of complete injection protection. No dependencies, live
+model/evals, RAG, GTA, Docker or Gradle are in scope. See
+`PHASE15_PREPARATION.md` and `PHASE15_CONTINUATION_PROMPT.md`. Focused tests
+passed 10/10; the full deterministic suite passed 188 tests with 19 expected
+skips. External scanner adoption remains a separate dependency decision.
+
+**Post-phase live result:** real local Ollama/Chroma component integration
+passed 1/1. A separate actual offline `runner.py` loop in a disposable `E:`
+copy correctly masked its synthetic GitHub-shaped token before state persistence
+but remained `in_progress` after three turns and ten tool executions. It was
+stopped and the entire copy deleted. Do not claim full runtime acceptance or
+attribute this loop nondeterminism to Phase 15 without a separate diagnosis.
+
+**Correct GTA baseline validation:** the saved read-only Analyst→Reviewer
+`tools:targetApi="31"` manifest question passed. The saved `MainActivity`
+`MAIN`/`LAUNCHER` question initially failed closed: both manifest chunks exist
+in Chroma, but only the `LAUNCHER` tail was supplied. The bounded Phase 9
+source-assembly correction keeps the selected literal source's stored chunks
+through fusion; the same real question now passes with `.MainActivity`.
+No corpus re-indexing or connected-source access occurred.
 
 **Phase 14.1 structure — completed:** all Python test modules now reside under
 `tests/`: `sandbox/` for the Sandbox itself, `project_rag/` for generic
@@ -71,7 +97,9 @@ GTA source/profile; vaults; providers; roles; patch/review/approval/validation
 workflows; Docker; Gradle; models; dependency changes; broad suites. Reset may
 never call `purge_user_data` or remove non-session user data.
 
-See `PHASE12_PREPARATION.md` and `PHASE12_CONTINUATION_PROMPT.md`.
+The former Phase 12 preparation and continuation files were removed after
+completion; its historical contract and observed results remain recorded here
+and in `CODEX_HANDOVER.md`.
 
 **Observed completion:** `--reset` deletes only the selected session
 `state.json`; `--clear` remains a deprecated compatibility alias. New-session
