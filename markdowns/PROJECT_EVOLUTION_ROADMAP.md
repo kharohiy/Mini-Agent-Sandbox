@@ -748,3 +748,28 @@ per file. Focused Vault/guardrail tests passed 17/17 with one expected Windows
 real-symlink fixture skip; a deterministic mock independently covers symlink
 refusal. The deterministic suite passed 197 tests with 20 expected skips. No
 live vault data was inspected or migrated.
+
+## Phase 17 — Tool-scoped secret capabilities
+
+**Status:** completed and reviewed locally on 2026-09-27.
+
+Analysis item 17 is a P0 boundary separate from Phase 16 persistence: the
+Runner currently resolves every top-level string tool argument before tool
+authorization. Phase 17 will replace this generic path with a static,
+default-deny capability registry keyed by exact trusted tool and parameter.
+No current agent-visible tool requires plaintext secret material, so the
+initial production capability set remains empty. Focused synthetic tests must
+prove denial before Vault access and exact same-tenant resolution only for an
+isolated capability fixture. No external tools, dependencies, model calls,
+live-vault work, RAG/GTA, Docker, or Gradle are in scope.
+
+Completion record: `secret_capabilities.py` has an intentionally empty static
+production registry, and `runner.py` authorizes a tool before resolving any
+capability-bearing argument. The generic resolver and its token logging are
+removed; current tool arguments remain opaque. Focused tests passed 5/5 and
+the deterministic suite passed 202 tests with 20 expected skips. Ruff passed
+for the new module/tests; `runner.py` retains 10 pre-existing findings outside
+this phase. An initial unit-test import attempted LiteLLM's remote cost-map
+refresh, which the sandbox refused; no external request succeeded. Subsequent
+verification used `LITELLM_LOCAL_MODEL_COST_MAP=True`. No live vault, model,
+RAG/GTA, Docker, or Gradle operation occurred.

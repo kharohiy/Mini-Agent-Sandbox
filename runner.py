@@ -20,6 +20,7 @@ from data_guardrail import guardrail
 from telemetry_aggregator import aggregate_telemetry
 from vault_registry import get_user_vault
 from fact_policy import FactPolicy
+from secret_capabilities import resolve_capability_arguments
 from documentation_policy import (documentation_contract, project_evidence,
                                   check_documentation_content, check_artifact, check_review)
 from model_router import (
@@ -39,27 +40,6 @@ def configure_console_output():
 
 
 configure_console_output()
-
-def resolve_secrets(code_string: str, user_id: str) -> str:
-    """Runner-Interceptor: Decrypts tokens before execution"""
-    if not isinstance(code_string, str) or "__VAULT_SECRET_" not in code_string:
-        return code_string
-        
-    pattern = re.compile(r"__VAULT_SECRET_[A-Z0-9_]+__")
-    user_vault = get_user_vault(user_id)
-    
-    def replacer(match):
-        token = match.group(0)
-        real_secret = user_vault.get_secret(token)
-        if real_secret:
-            print(f"[Interceptor] 🔓 Unlocked secret for execution. Token: {token}")
-            return real_secret
-        else:
-            print(f"[Interceptor] ❌ Invalid token detected: {token}")
-            return token
-
-    return pattern.sub(replacer, code_string)
-
 
 def parse_reviewer_decision(answer: str) -> str | None:
     """Accept only the explicit structured verdict emitted by the Reviewer."""
@@ -170,6 +150,24 @@ def agent_tools_for_task_mode(task_mode, current_turn="coder", proposal_step_id=
             allowed.add("create_file")
         return [tool for tool in AGENT_TOOLS if tool["function"]["name"] in allowed]
     raise ValueError("Unsupported task_mode.")
+
+
+def authorize_tool_arguments(
+    tool_name: str,
+    arguments: dict[str, object],
+    user_id: str,
+    task_mode,
+    current_turn: str,
+    proposal_step_id=None,
+) -> tuple[bool, dict[str, object]]:
+    """Authorize dispatch before any capability-scoped secret resolution."""
+    allowed_tool_names = {
+        tool["function"]["name"]
+        for tool in agent_tools_for_task_mode(task_mode, current_turn, proposal_step_id)
+    }
+    if tool_name not in allowed_tool_names:
+        return False, arguments
+    return True, resolve_capability_arguments(tool_name, arguments, user_id)
 
 
 def documentation_path_allowed(task_mode, tool_name, raw_path):
@@ -1301,19 +1299,17 @@ def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=N
                         func_name = tool_call.function.name
                         args = json.loads(tool_call.function.arguments)
                         print(f"\n[System Call] Agent calls tool: {func_name}")
-                        
-                        # Argument Deobfuscation (Runner-Interceptor)
-                        for k, v in args.items():
-                            if isinstance(v, str):
-                                args[k] = resolve_secrets(v, user_id)
-                        
-                        # Human-in-the-loop for external/critical tools
-                        if (task_mode == "documentation" or state.get("proposal_step_id")) and func_name not in {
-                            tool["function"]["name"]
-                            for tool in agent_tools_for_task_mode(
-                                task_mode, current_turn, state.get("proposal_step_id")
-                            )
-                        }:
+                        is_allowed, args = authorize_tool_arguments(
+                            func_name,
+                            args,
+                            user_id,
+                            task_mode,
+                            current_turn,
+                            state.get("proposal_step_id"),
+                        )
+
+                        # Tool authorization precedes any possible Vault lookup.
+                        if not is_allowed:
                             tool_result = "Security Error: tool is not allowed for this role."
                         elif func_name in ["send_email", "access_calendar", "web_search"]:
                             print(f"\n[Security] WARNING: Agent attempting to call external/critical tool: {func_name}")

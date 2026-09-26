@@ -1,12 +1,13 @@
-## Current checkpoint — Phase 16 completed and pushed
+## Current checkpoint — Phase 17 completed locally
 
-Phase 16 established the tenant-scoped persistent Vault contract and was
-reviewed, committed and pushed as `ae15081` on 2026-09-22. The `main` branch
-is synchronized with `origin/main`. Canonical vault files are
-`data/<user_id>/vault.enc` and `vault.key`; a complete legacy hidden pair is
-copied only into an absent canonical pair and is never deleted. The focused
-Vault/guardrail suite passed 17/17 with one expected Windows symlink skip; the
-deterministic suite passed 197 tests with 20 expected skips.
+Phase 17 replaces generic secret deobfuscation with a static default-deny
+tool-parameter capability boundary. The production registry is intentionally
+empty: current agent-visible tools retain opaque tokens, and Runner authorizes
+a tool before any capability-scoped Vault lookup. Focused tests passed 5/5;
+the deterministic suite passed 202 tests with 20 expected skips.
+
+Phase 16 remains the completed tenant-scoped Vault persistence contract,
+committed and pushed as `ae15081` on 2026-09-22.
 
 The Phase 7 material below is retained as historical operational context.
 

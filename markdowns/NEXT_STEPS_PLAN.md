@@ -1,4 +1,4 @@
-## Current checkpoint — Phase 16 completed and pushed
+## Current checkpoint — Phase 17 completed locally
 
 **Status:** Phases 13/13.1 were committed and pushed as `ffd0fd0`; Phase 14
 was committed and pushed as `c563cd4`; and Phase 14.1 was committed and pushed
@@ -6,6 +6,13 @@ as `dfae390` on 2026-09-21. Phase 15 plus the bounded Phase 9 retrieval
 hotfix were committed and pushed as `1b0a402` on 2026-09-22. Phase 16 was
 reviewed, committed and pushed as `ae15081` on 2026-09-22; `main` is
 synchronized with `origin/main`.
+
+**Phase 17 — completed locally:** analysis item 17's P0 tool-secret capability
+boundary now uses an empty default-deny production registry. `runner.py`
+authorizes a tool before capability-scoped resolution; current agent-visible
+tools retain opaque tokens. Focused tests passed 5/5 and the deterministic
+suite passed 202 tests with 20 expected skips; see `PHASE17_PREPARATION.md`
+and `PHASE17_CONTINUATION_PROMPT.md`.
 
 **Phase 16 scope — completed:** analysis item 16 was reconciled with the
 existing tenant factory and completed with an explicit canonical

@@ -954,3 +954,21 @@ refusal without Windows privileges. The full deterministic suite passed 197
 tests with 20 expected skips. No live vault/RAG/GTA/model/Docker/Gradle data
 was touched. Do not run a live migration or delete legacy files without a
 separate backup-first operational approval.
+
+## Phase 17 handover — completed locally 2026-09-27
+
+Phase 17 addresses analysis item 17, not Vault persistence. The new
+`secret_capabilities.py` registry is static and empty in production; Runner
+tool authorization occurs before any capability-scoped Vault lookup. The
+former generic resolver and token logging are removed, and current file,
+directory, fact, and patch arguments retain opaque tokens.
+
+Focused tests passed 5/5; the deterministic suite passed 202 tests with 20
+expected skips. Ruff passed for the new module/tests; `runner.py` has 10
+pre-existing findings outside this phase. An initial unit-test import attempted
+LiteLLM's remote cost-map refresh, which the sandbox refused; no external
+request succeeded. Subsequent verification used `LITELLM_LOCAL_MODEL_COST_MAP=True`.
+No live vault, model, RAG/GTA, Docker, or Gradle operation occurred. Do not add
+a plaintext capability or restore generic deobfuscation
+without a separately approved trusted tool, exact parameter, and regression
+coverage.

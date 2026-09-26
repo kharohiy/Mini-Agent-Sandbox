@@ -1026,3 +1026,15 @@ tail. A focused Phase 9 correction now assembles bounded chunks only for the
 already selected literal source and retains them through semantic fusion. The
 same real question then passed with `.MainActivity`; this was not a reason to
 infer the missing fact, change connected source, or re-index the corpus.
+
+## Phase 17 completion note — 2026-09-27
+
+The generic Runner resolver was replaced with a static, default-deny
+tool-parameter capability boundary. The production registry is intentionally
+empty because current agent-visible tools have no demonstrated plaintext-secret
+need. Tool authorization precedes any resolver invocation; file, directory,
+fact, and patch arguments retain opaque tokens. Focused tests passed 5/5 and
+the deterministic suite passed 202 tests with 20 expected skips. An initial
+unit-test import attempted LiteLLM's remote cost-map refresh, which the sandbox
+refused; no external request succeeded. No live vault or model/Docker/Gradle
+operation occurred.

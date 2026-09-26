@@ -1,5 +1,15 @@
 # 🧪 Hardened Evals Pipeline (Test Guidelines)
 
+## Phase 17 tool-secret capability tests — completed locally 2026-09-27
+
+- `tests/sandbox/policy/test_secret_capabilities.py` covers opaque token
+  preservation for current file/directory/patch arguments, refusal before a
+  resolver invocation for an unknown tool and a Reviewer file write, exact
+  same-tenant synthetic capability resolution, and non-recursive nested values.
+- The focused suite passed 5/5. The deterministic suite passed 202 tests with
+  20 expected skips. Tests use temporary roots and synthetic values only; they
+  do not call a model, network service, Docker, Gradle, or live Vault.
+
 ## Phase 9 cascaded-RAG acceptance — completed 2026-09-20
 
 - The canonical global library has 2,293 chunks; GTA project-code remains 393.
