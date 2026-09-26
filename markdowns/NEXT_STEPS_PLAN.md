@@ -1,10 +1,11 @@
-## Current checkpoint — Phase 16 completed locally
+## Current checkpoint — Phase 16 completed and pushed
 
 **Status:** Phases 13/13.1 were committed and pushed as `ffd0fd0`; Phase 14
 was committed and pushed as `c563cd4`; and Phase 14.1 was committed and pushed
 as `dfae390` on 2026-09-21. Phase 15 plus the bounded Phase 9 retrieval
-hotfix were committed and pushed as `1b0a402` on 2026-09-22. Phase 16 is
-complete locally and awaits review, commit and push.
+hotfix were committed and pushed as `1b0a402` on 2026-09-22. Phase 16 was
+reviewed, committed and pushed as `ae15081` on 2026-09-22; `main` is
+synchronized with `origin/main`.
 
 **Phase 16 scope — completed:** analysis item 16 was reconciled with the
 existing tenant factory and completed with an explicit canonical

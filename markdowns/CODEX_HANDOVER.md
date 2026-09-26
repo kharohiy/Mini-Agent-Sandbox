@@ -937,10 +937,11 @@ approval. Use temporary fixtures only. Do not log/decrypt live secrets, add a
 KMS/dependency, change secret-resolution authority, or touch RAG/GTA/Docker/
 Gradle/models/policy/roles/approval/validation/task state/facts.
 
-## Phase 16 handover — completed locally 2026-09-22
+## Phase 16 handover — completed, committed and pushed 2026-09-22
 
-The audit confirmed that production Runner and Guardrail call sites use
-`get_user_vault()`; no direct production `VaultRegistry` construction was
+Commit `ae15081` (`Isolate tenant vault persistence`) is on `main` and
+synchronized with `origin/main`. The audit confirmed that production Runner
+and Guardrail call sites use `get_user_vault()`; no direct production `VaultRegistry` construction was
 found. Canonical tenant files are now `vault.enc` and `vault.key`. Complete
 legacy hidden pairs are first decrypted, then copied only when canonical files
 are absent; they are not deleted. A same-key canonical mapping may extend the

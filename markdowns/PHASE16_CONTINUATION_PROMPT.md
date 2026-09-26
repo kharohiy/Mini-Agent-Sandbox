@@ -22,6 +22,8 @@ loop as Vault acceptance; deterministic temporary-fixture tests are required.
 
 ## Status
 
-Completed locally on 2026-09-22. Retain the canonical/legacy compatibility
+Completed, reviewed, committed and pushed as `ae15081` on 2026-09-22.
+`main` is synchronized with `origin/main`. Retain the canonical/legacy
+compatibility
 contract: do not delete legacy pairs, auto-resolve divergent pairs, or bypass
 the tenant factory without a separately approved migration or design change.

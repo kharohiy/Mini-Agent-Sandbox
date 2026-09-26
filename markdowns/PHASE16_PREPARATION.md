@@ -2,7 +2,8 @@
 
 ## Status
 
-Completed locally on 2026-09-22; awaiting review, commit and push.
+Completed, reviewed, committed and pushed as `ae15081` on 2026-09-22.
+`main` is synchronized with `origin/main`.
 
 ## Historical issue and current-state reconciliation
 

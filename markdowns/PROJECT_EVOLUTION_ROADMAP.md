@@ -664,7 +664,7 @@ skips. A real local Ollama/Chroma temporary-fixture run retrieved only its own
 
 ## Phase 14.1 — Test-suite structure and project-RAG separation
 
-**Status:** completed on 2026-09-21; awaiting commit and push.
+**Status:** completed and pushed as `dfae390` on 2026-09-21.
 
 All 38 Python test modules were Git-renamed from the repository root into the
 `tests/` package. `tests/sandbox/` holds Mini Agent Sandbox unit/contract tests;
@@ -722,7 +722,7 @@ re-indexing occurred.
 
 ## Phase 16 — Tenant-scoped persistent Vault
 
-**Status:** completed locally on 2026-09-22; awaiting commit and push.
+**Status:** completed, reviewed and pushed as `ae15081` on 2026-09-22.
 
 The historical analysis correctly requires that encrypted secrets and keys are
 not shared process-wide. Current-source reconciliation found that

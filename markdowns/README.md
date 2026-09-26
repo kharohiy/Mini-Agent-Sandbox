@@ -1,4 +1,16 @@
-## Актуальный статус — выполнение ограниченного контура 2026-09-16
+## Current checkpoint — Phase 16 completed and pushed
+
+Phase 16 established the tenant-scoped persistent Vault contract and was
+reviewed, committed and pushed as `ae15081` on 2026-09-22. The `main` branch
+is synchronized with `origin/main`. Canonical vault files are
+`data/<user_id>/vault.enc` and `vault.key`; a complete legacy hidden pair is
+copied only into an absent canonical pair and is never deleted. The focused
+Vault/guardrail suite passed 17/17 with one expected Windows symlink skip; the
+deterministic suite passed 197 tests with 20 expected skips.
+
+The Phase 7 material below is retained as historical operational context.
+
+## Исторический статус — выполнение ограниченного контура 2026-09-16
 
 - `phase7_quality_final` остаётся неизменяемым историческим неуспешным run
   (`in_progress`, фактические `agent_steps: 11`), без reset/edit/resume.
