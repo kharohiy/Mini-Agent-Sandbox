@@ -1,4 +1,21 @@
-## Current checkpoint — Phase 17 completed locally
+## Current checkpoint — Phase 18 completed locally
+
+Phase 18 removed the unreachable mocked confirmation branch for unsupported
+external tools, preserved exact-hash human approval for project patches, and
+corrected the general-HITL documentation. The focused capability tests passed
+6/6; the patch-approval API test passed 1/1. Ruff passed for the modified test
+module; `runner.py` retains 10 pre-existing findings. See
+`PHASE18_PREPARATION.md` for the completion record. No subsequent phase is
+designated yet.
+
+**Standalone approved task — Project Catalog and Project-Bound Q&A:** implemented
+locally and recorded in `TASK_PROJECT_CATALOG_AND_QA.md`; this does not create
+or activate Phase 19. The deterministic suite passed 225 tests with 20 expected
+skips, and the exact saved GTA manifest question passed through the interactive
+Runner with the expected `tools:targetApi="31"` answer. The live project
+registry was migrated after separate backup-first approval, and the GTA row
+now stores user-provided description, optional GitHub URL, and existing local
+checkout path. Remote clone/fetch remains deferred.
 
 **Status:** Phases 13/13.1 were committed and pushed as `ffd0fd0`; Phase 14
 was committed and pushed as `c563cd4`; and Phase 14.1 was committed and pushed
@@ -26,15 +43,12 @@ tests with 20 expected skips. No KMS, dependency, model, RAG, GTA, Docker or
 Gradle work occurred.
 
 **Phase 15 scope — completed:** secret/PII classification is separated from prompt-injection
-handling. Replace the current five-rule regex/context heuristic with structured
-findings, provider detectors and context-gated entropy while preserving masking
-compatibility. Markup sanitisation remains a separately labelled limited
-boundary, not a claim of complete injection protection. No dependencies, live
-model/evals, RAG, GTA, Docker or Gradle are in scope. See
-`PHASE15_PREPARATION.md` and `PHASE15_CONTINUATION_PROMPT.md`. Focused tests
-passed 10/10; after the Phase 9 hotfix the full deterministic suite passed 190
-tests with 19 expected skips. External scanner adoption remains a separate
-dependency decision.
+handling. Structured findings, provider detectors and context-gated entropy
+preserve masking compatibility. Markup sanitisation remains a separately
+labelled limited boundary, not a claim of complete injection protection.
+Focused tests passed 10/10; after the Phase 9 hotfix the full deterministic
+suite passed 190 tests with 19 expected skips. External scanner adoption
+remains a separate dependency decision.
 
 **Post-phase live result:** real local Ollama/Chroma component integration
 passed 1/1. A separate actual offline `runner.py` loop in a disposable `E:`

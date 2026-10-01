@@ -67,6 +67,32 @@ class SecretCapabilityTests(unittest.TestCase):
         self.assertEqual(calls, [])
         resolver.assert_not_called()
 
+    def test_unsupported_external_tools_are_refused_without_prompt_or_dispatch(self):
+        unsupported_tools = {"send_email", "access_calendar", "web_search"}
+        exposed_tools = {
+            tool["function"]["name"] for tool in runner.AGENT_TOOLS
+        }
+        self.assertTrue(unsupported_tools.isdisjoint(exposed_tools))
+
+        for tool_name in unsupported_tools:
+            with self.subTest(tool_name=tool_name):
+                with patch("runner.resolve_capability_arguments") as resolver:
+                    with patch("builtins.input") as prompt:
+                        allowed, arguments = runner.authorize_tool_arguments(
+                            tool_name,
+                            {"recipient": "synthetic@example.invalid"},
+                            "alice",
+                            "code",
+                            "coder",
+                        )
+
+                self.assertFalse(allowed)
+                self.assertEqual(
+                    arguments, {"recipient": "synthetic@example.invalid"}
+                )
+                resolver.assert_not_called()
+                prompt.assert_not_called()
+
     def test_reviewer_file_write_is_refused_before_a_vault_lookup(self):
         with patch("runner.resolve_capability_arguments") as resolver:
             allowed, resolved = runner.authorize_tool_arguments(

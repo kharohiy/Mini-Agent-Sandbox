@@ -873,8 +873,8 @@ named, compatibility-only prompt-injection boundary. Preserve
 Do not install or invoke an external scanner, scan live data, run local models
 or evals, touch RAG/GTA/Docker/Gradle, alter vault paths, log plaintext values,
 or change `resolve_secrets()`/tool authority. Prompt-injection protection must
-not be described as complete. Read `PHASE15_PREPARATION.md` and
-`PHASE15_CONTINUATION_PROMPT.md` before implementation.
+not be described as complete. This planned handover is historical; the phase
+completion record follows.
 
 ## Phase 15 handover — completed 2026-09-22
 
@@ -928,9 +928,8 @@ source has `get_user_vault(user_id)` with validated IDs and separate
 `data/<user_id>/.vault` / `.vault_key` files. Do not treat the historical
 global-vault description as authorization to rename or migrate live data.
 
-Start only from `PHASE16_PREPARATION.md` and
-`PHASE16_CONTINUATION_PROMPT.md` after implementation approval. Audit every
-constructor and persistence call first. Any filename migration to the desired
+This planned handover is historical; the phase completion record follows.
+Audit every constructor and persistence call first. Any filename migration to the desired
 `vault.enc` / `vault.key` layout must be same-user, conflict-fail-closed,
 verified, and non-destructive; live migration needs separate operational
 approval. Use temporary fixtures only. Do not log/decrypt live secrets, add a
@@ -972,3 +971,53 @@ No live vault, model, RAG/GTA, Docker, or Gradle operation occurred. Do not add
 a plaintext capability or restore generic deobfuscation
 without a separately approved trusted tool, exact parameter, and regression
 coverage.
+
+## Phase 18 handover — completed locally 2026-10-01
+
+Analysis item 18 is narrowed by current-source inspection. The runtime has a
+mock confirmation branch for `send_email`, `access_calendar`, and `web_search`,
+but these tools are absent from `AGENT_TOOLS`; authorization rejects them
+before the branch, and its success path is mocked. A distinct human approval
+flow exists for project patches and binds approval to the reviewed diff
+SHA-256 before validation.
+
+Phase 18 removed the unreachable mock branch, added focused fail-closed tests,
+and corrected broad HITL claims in `README.md` and `TESTS.md`. The capability
+suite passed 6/6 and the exact-SHA patch-approval API test passed 1/1. Ruff
+passed for the changed test module; `runner.py` retains 10 pre-existing
+findings. No external tools or RAG work occurred. See
+`PHASE18_PREPARATION.md` for the completion record.
+
+## Standalone Project Catalog and Q&A task — implemented locally 2026-10-01
+
+The user approved `TASK_PROJECT_CATALOG_AND_QA.md`; this is a standalone task,
+not Phase 19. Catalog metadata fields and an explicit migration method are in
+`project_registry.py`. The live SQLite database was migrated backup-first on
+2026-10-01 after separate approval. Remote repository clone/fetch remains out
+of scope.
+
+`project_qa_service.py` is the single project-Q&A implementation used by
+Runner and the compatibility CLI. It binds retrieval to the selected project,
+checks retrieved source paths and hashes against the saved project snapshot,
+reports a derived snapshot revision, and refuses stale, malformed, missing, or
+cross-project evidence. These checks prove evidence provenance, not semantic
+entailment. Q&A role settings are isolated in `roles.json`; local primary and
+fallback Ollama models are discovered for unload from configured roles.
+
+Verification: 225 deterministic tests passed with 20 expected skips. The exact
+historical GTA manifest question returned `tools:targetApi="31"` from
+`app/src/main/AndroidManifest.xml`; final `ollama ps` was empty. Focused Ruff
+checks passed. `ruff check runner.py` still reports 9 pre-existing findings
+outside task edits. No remote repository access, GTA source edit, RAG rebuild,
+Docker, or Gradle operation occurred. The LiteLLM metadata-map
+refresh was disabled for deterministic tests with
+`LITELLM_LOCAL_MODEL_COST_MAP=True`.
+
+After migration, the registry backup is
+`data/registry/backups/projects-20261001T165819Z.sqlite`. Its integrity,
+schema, and rows were verified against the source before migration. The live
+database integrity is `ok`; the existing GTA project ID, name, checkout path,
+and timestamps are unchanged. Its user-provided description and optional
+GitHub URL are stored separately from the local checkout path. No branch or
+resolved revision was provided. No GitHub access, source edit, RAG rebuild,
+commit, or push occurred.

@@ -24,5 +24,25 @@
       "system_prompt": "ROLE: You are an Architectural Arbitrator (Data Analyst) stepping in to break deadlocks between the Feature Developer and Tech Lead Reviewer.\nTONE: Decisive, objective, authoritative.\nLIMITATIONS:\n1. Do not write code. \n2. Review the debate history, decide whose approach aligns better with the system's facts and clean architecture principles, and give a final binding architectural ruling.\n3. Keep it concise.",
       "temperature": 0.0
     }
+  },
+  "project_qa": {
+    "analyst": {
+      "model": "ollama/qwen2.5:14b",
+      "routing": {
+        "privacy_policy": "local_only",
+        "cloud_eligible": false,
+        "fallback_eligible": false,
+        "fallback_models": []
+      }
+    },
+    "reviewer": {
+      "model": "ollama/qwen2.5:14b",
+      "routing": {
+        "privacy_policy": "local_only",
+        "cloud_eligible": false,
+        "fallback_eligible": false,
+        "fallback_models": []
+      }
+    }
   }
 }

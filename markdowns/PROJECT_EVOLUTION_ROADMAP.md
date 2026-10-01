@@ -773,3 +773,44 @@ this phase. An initial unit-test import attempted LiteLLM's remote cost-map
 refresh, which the sandbox refused; no external request succeeded. Subsequent
 verification used `LITELLM_LOCAL_MODEL_COST_MAP=True`. No live vault, model,
 RAG/GTA, Docker, or Gradle operation occurred.
+
+## Phase 18 — Close the unsupported critical-tool HITL path
+
+**Status:** Completed locally 2026-10-01.
+
+Analysis item 18 points to a runtime confirmation branch for
+`send_email`, `access_calendar`, and `web_search`, none of which is exposed in
+`AGENT_TOOLS`. Current source confirms authorization rejects these calls
+before the branch; its successful response is mocked. A separate, real
+human-approval boundary exists for reviewed project patches: `WorkLedger`
+binds explicit user approval to the exact patch SHA-256 before validation.
+
+Completion: the unreachable mock branch was removed. Regression coverage
+proves all three names are absent from `AGENT_TOOLS` and refused before
+capability resolution or prompting. README and TESTS now describe default-deny
+external tools and the separate exact-SHA project-patch approval. Focused
+capability tests passed 6/6; the existing patch-approval API test passed 1/1.
+Ruff passed for the changed test module; `runner.py` retains 10 unrelated
+pre-existing findings. The full deterministic suite was not run. No external
+tools, network, model, RAG, Docker, or Gradle operation occurred. See
+`PHASE18_PREPARATION.md` for details.
+
+## Standalone task — Project Catalog and Project-Bound Q&A
+
+**Status:** implemented locally on 2026-10-01; not a numbered phase.
+
+The approved task adds backward-compatible SQLite catalog metadata with an
+explicit migration method, extracts project Q&A into `project_qa_service.py`,
+uses isolated Q&A role settings, and validates retrieved project source/hash
+evidence against the stored snapshot. Remote URLs may be recorded for an
+existing checkout, but remote clone/fetch is not implemented. Source/hash
+validation establishes provenance, not semantic entailment.
+
+Verification: 225 deterministic tests passed with 20 expected skips. The exact
+GTA manifest question returned `tools:targetApi="31"` through the Runner; the
+final `ollama ps` was empty. The live registry was migrated backup-first on
+2026-10-01 after separate approval; backup integrity and row equivalence were
+verified before migration, and original identity/path/timestamps were
+preserved. User-provided description, optional repository URL, and local
+checkout path are stored separately. No connected source or RAG corpus was
+modified. See `TASK_PROJECT_CATALOG_AND_QA.md`.

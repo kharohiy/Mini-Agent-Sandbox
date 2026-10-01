@@ -123,6 +123,7 @@ class ProjectRetrievalTests(unittest.TestCase):
                 ),
                 "metadata": {
                     "source": "app/src/main/AndroidManifest.xml",
+                    "sha256": "a" * 64,
                     "module": ":app",
                     "chunk_index": 0,
                 },
@@ -134,6 +135,7 @@ class ProjectRetrievalTests(unittest.TestCase):
                 ),
                 "metadata": {
                     "source": "app/src/main/AndroidManifest.xml",
+                    "sha256": "a" * 64,
                     "module": ":app",
                     "chunk_index": 1,
                 },
@@ -153,6 +155,7 @@ class ProjectRetrievalTests(unittest.TestCase):
         self.assertIn("android.intent.action.MAIN", hits[0]["text"])
         self.assertIn("android.intent.category.LAUNCHER", hits[0]["text"])
         self.assertNotIn("OtherActivity", hits[0]["text"])
+        self.assertEqual(hits[0]["chunk_hashes"], ["a" * 64, "a" * 64])
 
     def test_fusion_keeps_selected_source_assembly_over_semantic_tail_chunk(self):
         semantic = [{

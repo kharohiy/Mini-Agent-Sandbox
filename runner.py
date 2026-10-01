@@ -11,6 +11,8 @@ import litellm
 import logging
 from rag_service import SandboxRagService
 from project_retrieval import format_retrieval_context, retrieve_project_context
+from project_qa_service import ProjectQaError, ProjectQaService
+from ollama_runtime import unload_ollama_models
 from project_telemetry import ProjectTelemetryStore
 from project_policy import ProjectPolicyStore, default_policy
 from project_registry import ProjectRegistry
@@ -799,6 +801,79 @@ def safe_llm_completion(
     return response
 
 
+def ask_registered_project(project_id, question, *, include_technical_reference=False):
+    service = ProjectQaService(completion=safe_llm_completion)
+    return service.ask(
+        project_id,
+        question,
+        include_technical_reference=include_technical_reference,
+    )
+
+
+def run_project_qa_interactive():
+    projects = ProjectRegistry().list()
+    if not projects:
+        raise ProjectQaError("No registered projects are available.")
+
+    print("\nRegistered projects:")
+    for index, project in enumerate(projects, start=1):
+        print(f"{index}. {project['display_name']} ({project['id']})")
+        if project.get("description"):
+            print(f"   {project['description']}")
+        if project.get("source_kind") == "git":
+            print(f"   Repository: {project['source_uri']}")
+            print(f"   Checkout: {project['source_path']}")
+        else:
+            print(f"   Local source: {project['source_path']}")
+        rag_path = Path(project["state_dir"]) / "rag"
+        snapshot_path = Path(project["state_dir"]) / "snapshot" / "project_snapshot.sqlite"
+        storage_state = "paths present; evidence/revision checked when queried" if rag_path.is_dir() and snapshot_path.is_file() else "not initialized or incomplete"
+        print(f"   Project RAG: {rag_path} ({storage_state})")
+
+    selection = input("Select a project by number or ID: ").strip()
+    selected = next(
+        (
+            project
+            for index, project in enumerate(projects, start=1)
+            if selection == str(index) or selection == project["id"]
+        ),
+        None,
+    )
+    if selected is None:
+        raise ProjectQaError("No matching registered project was selected.")
+
+    question = input("Enter a project question (empty to cancel): ").strip()
+    if not question:
+        print("No question entered; cancelling.")
+        return None
+    return ask_registered_project(selected["id"], question)
+
+
+def run_project_qa_cli():
+    try:
+        result = run_project_qa_interactive()
+        if result is not None:
+            print("\nAnswer:")
+            print(result["reviewer"])
+            print(f"\nIndexed snapshot revision: {result['snapshot_revision'][:12]}")
+            print("\nSources:")
+            for source in result["sources"]:
+                print(f"- {source}")
+            if result["technical_references"]:
+                print("\nOptional technical references:")
+                for source in result["technical_references"]:
+                    print(f"- {source}")
+        return 0
+    except ProjectQaError as error:
+        print(f"Project Q&A failed: {error}", file=sys.stderr)
+        return 1
+    except Exception:
+        print("Project Q&A failed due to an internal error; no answer was produced.", file=sys.stderr)
+        return 1
+    finally:
+        unload_ollama_models(announce=False)
+
+
 def _detect_workspace_language(workspace: Path) -> str | None:
     has_python = any(workspace.rglob("*.py"))
     has_kotlin = any(workspace.rglob("*.kt")) or any(workspace.rglob("*.kts"))
@@ -1311,13 +1386,6 @@ def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=N
                         # Tool authorization precedes any possible Vault lookup.
                         if not is_allowed:
                             tool_result = "Security Error: tool is not allowed for this role."
-                        elif func_name in ["send_email", "access_calendar", "web_search"]:
-                            print(f"\n[Security] WARNING: Agent attempting to call external/critical tool: {func_name}")
-                            confirm = input("Allow execution? (y/n): ")
-                            if confirm.lower() != 'y':
-                                tool_result = "Action denied by human security guardrail."
-                            else:
-                                tool_result = "Action executed (mocked for safety)."
                         elif func_name == "propose_patch":
                             try:
                                 if current_turn != "coder" or not project_id or not state.get("proposal_step_id"):
@@ -1639,25 +1707,10 @@ def clear_session_history(user_id):
     print("[System] --clear is deprecated; applying the session-only reset contract.")
     return reset_session_state(user_id)
 
-def unload_ollama_models():
-    import urllib.request
-    print("\n[System] Clearing VRAM from local Ollama models...")
-    models_to_unload = ["qwen2.5:14b"]
-    
-    for model in models_to_unload:
-        try:
-            req = urllib.request.Request(
-                "http://localhost:11434/api/generate",
-                data=json.dumps({"model": model, "keep_alive": 0}).encode("utf-8"),
-                headers={"Content-Type": "application/json"}
-            )
-            urllib.request.urlopen(req, timeout=5)
-            print(f"[System] Model {model} successfully unloaded from memory.")
-        except Exception as e:
-            pass # Ignore if server is off or model wasn't loaded
-
 if __name__ == "__main__":
-    if len(sys.argv) > 5 and sys.argv[1] == "--project-patch-task":
+    if len(sys.argv) > 1 and sys.argv[1] == "--project-qa":
+        raise SystemExit(run_project_qa_cli())
+    elif len(sys.argv) > 5 and sys.argv[1] == "--project-patch-task":
         try:
             run_agent_loop(
                 user_id=sys.argv[4],

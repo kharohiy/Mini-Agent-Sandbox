@@ -139,7 +139,8 @@ def _assemble_selected_source(collection, hit: dict, *, maximum_characters: int 
         key=lambda item: (item[1][1].get("chunk_index", item[0]), item[0]),
     )
     text = "\n".join(chunk for _, (chunk, _) in chunks)[:maximum_characters]
-    return hit | {"text": text} if text.strip() else hit
+    chunk_hashes = [metadata.get("sha256", "") for _, (_, metadata) in chunks]
+    return hit | {"text": text, "chunk_hashes": chunk_hashes} if text.strip() else hit
 
 
 def _query_terms(query: str) -> set[str]:

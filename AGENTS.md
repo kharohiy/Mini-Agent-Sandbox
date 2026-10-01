@@ -16,8 +16,9 @@ non-trivial change, read it in this order:
 3. `markdowns/NEXT_STEPS_PLAN.md` — active priority.
 4. `markdowns/PROJECT_EVOLUTION_ROADMAP.md` — approved milestones.
 5. `markdowns/TESTS.md` — security-test scenarios.
-6. The active phase files in `markdowns/` (currently
-   `PHASE16_PREPARATION.md` and `PHASE16_CONTINUATION_PROMPT.md`).
+6. The latest phase records in `markdowns/` (Phase 18 is completed; consult
+   `PHASE18_PREPARATION.md` and `PHASE18_CONTINUATION_PROMPT.md` as its scope
+   and completion record. No subsequent phase is designated here).
 7. `markdowns/mini_agent_sandbox_analysis.md` when architectural context is
    needed.
 

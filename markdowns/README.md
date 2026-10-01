@@ -1,13 +1,34 @@
-## Current checkpoint — Phase 17 completed locally
+## Current checkpoint — Phase 18 completed locally
 
-Phase 17 replaces generic secret deobfuscation with a static default-deny
-tool-parameter capability boundary. The production registry is intentionally
-empty: current agent-visible tools retain opaque tokens, and Runner authorizes
-a tool before any capability-scoped Vault lookup. Focused tests passed 5/5;
-the deterministic suite passed 202 tests with 20 expected skips.
+Phase 18 removed the unreachable mocked confirmation branch for unsupported
+external tools and preserved exact-hash user approval for reviewed project
+patches. See `PHASE18_PREPARATION.md` for its verification record.
 
-Phase 16 remains the completed tenant-scoped Vault persistence contract,
-committed and pushed as `ae15081` on 2026-09-22.
+The approved standalone Project Catalog and Project-Bound Q&A task is
+implemented locally; it does not designate a new numbered phase. The
+deterministic suite passed 225 tests with 20 expected skips. See
+`TASK_PROJECT_CATALOG_AND_QA.md` for the design and verification.
+
+For read-only Q&A over a registered project from the Runner CLI, run
+`python runner.py --project-qa`, select a listed project by number or ID, then
+enter the question. Catalog metadata is stored in `data/registry/projects.sqlite`;
+project RAG remains isolated under `data/projects/<project-id>/rag`, outside
+the connected source tree and legacy user RAG. Both Runner and the compatibility
+`project_qa.py` entry point call `project_qa_service.py`. Project-Q&A has
+separate Analyst/Reviewer settings in `roles.json` and still uses the normal
+router and project provider policy.
+
+Before calling a model, Q&A validates retrieved project-code source paths and
+file hashes against the registered project's saved snapshot and reports its
+derived snapshot revision. Missing, stale, cross-project, or malformed evidence
+fails closed. This validates provenance, not semantic entailment: a non-empty
+model answer is not deterministic proof that every claim is true. The CLI
+prints the Reviewer answer, snapshot revision, and evidence sources, then
+unloads local completion and embedding models. The live registry has been
+migrated backup-first. A repository URL is optional and stored separately from
+the required local checkout path; the GTA entry currently has both. Cloning or
+fetching remote repositories is not implemented. This mode does not start the general
+code-task loop or project-patch workflow.
 
 The Phase 7 material below is retained as historical operational context.
 
@@ -157,7 +178,7 @@ The project's architecture is built around a 4-stage data processing pipeline th
 ### 2. Security & Anonymization
 - **Mini Presidio (Layered DataGuardrail)**: Three-tier serverless leak protection: Regex, Contextual Validation, and Tokenization Engine (two-way obfuscation with substitution by tokens like `__VAULT_SECRET_...__`). Includes a Deobfuscation Vault (VaultRegistry) that encrypts the key map (Fernet AES-128) and unpackages tokens (Runner-Interceptor) on the fly before local code execution.
 - **Prompt Injection Protection**: Includes Affirmative Reframing (CBSI framework), RAG Isolation (escaping extracted facts with XML tags), and Output Integrity Guardrails.
-- **Multimodal & MCP Isolation**: Protection against hidden commands in images (OCR Attack Protection) and strict directory isolation (Path Traversal Protection). A Human-in-the-loop (HITL) mechanism is built-in for critical tool calls. **Protection against The Agentic Shift vector:** Agents are hardware-restricted from direct access to the system shell at the tool level (tools like `execute_command` are absent). This completely eliminates the risk of Install-time execution (automatic downloading and installation of malicious dependencies), ensuring the system remains under the operator's full control.
+- **Tool and patch boundaries**: Unregistered tools, including external email, calendar, and web-search tools, are rejected by default. For project patches, a positive Reviewer decision is followed by explicit user approval bound to the exact diff SHA-256 before trusted validation. There is no general-purpose console HITL for arbitrary critical tools. Agents also have no direct system-shell tool.
 - **Tool Circuit Breaker**: Protection against agent looping (Excessive Requests) with a hard limit (`MAX_TOOL_CALLS_PER_TURN = 5`). If exceeded, execution is interrupted (`SECURITY BLOCK`).
 
 ### 3. AI Analysis & Orchestration
