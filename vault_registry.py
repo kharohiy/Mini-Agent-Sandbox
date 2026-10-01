@@ -6,6 +6,8 @@ import json
 import os
 import re
 import tempfile
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 from cryptography.fernet import Fernet, InvalidToken
@@ -38,9 +40,10 @@ class VaultRegistry:
     def _init_encryption(self) -> None:
         vault_exists = self.vault_path.is_file()
         key_exists = self.key_path.is_file()
+        created_key = not key_exists
         if vault_exists and not key_exists:
             raise ValueError("Vault key is missing; refusing to replace an existing vault key.")
-        if not key_exists:
+        if created_key:
             self.cipher_key = Fernet.generate_key()
             self._atomic_write(self.key_path, self.cipher_key)
             try:
@@ -53,6 +56,8 @@ class VaultRegistry:
             self.cipher = Fernet(self.cipher_key)
         except (TypeError, ValueError) as exc:
             raise ValueError("Vault key material is invalid.") from exc
+        if created_key and not vault_exists:
+            self._atomic_write(self.vault_path, self.cipher.encrypt(b"{}"))
 
     def _load_encrypted_vault(self) -> dict[str, str]:
         """Load one vault or fail closed without logging its contents."""
@@ -99,6 +104,27 @@ def _pair_state(vault_path: Path, key_path: Path) -> str:
 def _reject_symlink(path: Path) -> None:
     if path.is_symlink():
         raise ValueError("Security Error: vault paths cannot be symlinks.")
+
+
+def _backup_and_initialize_empty_vault(vault_path: Path, key_path: Path) -> None:
+    if vault_path.exists() or not key_path.is_file():
+        raise ValueError("Vault orphan recovery requires a key-only file pair.")
+    key = key_path.read_bytes()
+    try:
+        cipher = Fernet(key)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Vault key material is invalid; orphan recovery was not applied.") from exc
+
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    backup_path = key_path.with_name(f"{key_path.name}.backup-{timestamp}-{uuid.uuid4().hex[:8]}")
+    VaultRegistry._atomic_write(backup_path, key)
+    try:
+        os.chmod(backup_path, 0o400)
+    except OSError:
+        pass
+    if backup_path.read_bytes() != key:
+        raise OSError("Vault key backup verification failed; orphan recovery was not applied.")
+    VaultRegistry._atomic_write(vault_path, cipher.encrypt(b"{}"))
 
 
 def _copy_validated_legacy_pair(
@@ -162,6 +188,16 @@ def get_user_vault(user_id: str, base_dir: str | Path = "data") -> VaultRegistry
     legacy_state = _pair_state(legacy_vault, legacy_key)
     if "invalid" in {canonical_state, legacy_state}:
         raise ValueError("Vault paths must be regular files.")
+    if user_id == "project_qa":
+        orphan_pair = None
+        if canonical_state == "incomplete" and legacy_state == "absent":
+            orphan_pair = (canonical_vault, canonical_key)
+        elif legacy_state == "incomplete" and canonical_state == "absent":
+            orphan_pair = (legacy_vault, legacy_key)
+        if orphan_pair and not orphan_pair[0].exists() and orphan_pair[1].is_file():
+            _backup_and_initialize_empty_vault(*orphan_pair)
+            canonical_state = _pair_state(canonical_vault, canonical_key)
+            legacy_state = _pair_state(legacy_vault, legacy_key)
     if canonical_state == "incomplete" or legacy_state == "incomplete":
         raise ValueError("Vault files are incomplete; refusing to create or replace a pair.")
     if canonical_state == "complete" and legacy_state == "complete":

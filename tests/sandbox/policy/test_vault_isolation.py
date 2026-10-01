@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from cryptography.fernet import Fernet
 from data_guardrail import DataGuardrail
 from vault_registry import VaultRegistry, get_user_vault
 
@@ -36,6 +37,58 @@ class VaultIsolationTests(unittest.TestCase):
         fresh_vault = get_user_vault("alice", self.base_dir)
 
         self.assertEqual(fresh_vault.get_secret(token), "alice-secret")
+
+    def test_empty_new_vault_remains_a_complete_pair_across_factory_calls(self):
+        first = get_user_vault("alice", self.base_dir)
+        second = get_user_vault("alice", self.base_dir)
+
+        self.assertEqual(first._load_encrypted_vault(), {})
+        self.assertEqual(second._load_encrypted_vault(), {})
+        self.assertTrue((self.base_dir / "alice" / "vault.enc").is_file())
+        self.assertTrue((self.base_dir / "alice" / "vault.key").is_file())
+
+    def test_project_qa_key_only_orphan_is_backed_up_and_initialized_empty(self):
+        user_dir = self.base_dir / "project_qa"
+        user_dir.mkdir(parents=True)
+        key_path = user_dir / ".vault_key"
+        original_key = Fernet.generate_key()
+        key_path.write_bytes(original_key)
+
+        vault = get_user_vault("project_qa", self.base_dir)
+
+        self.assertEqual(key_path.read_bytes(), original_key)
+        backups = list(user_dir.glob(".vault_key.backup-*"))
+        self.assertEqual(len(backups), 1)
+        self.assertEqual(backups[0].read_bytes(), original_key)
+        self.assertEqual(vault._load_encrypted_vault(), {})
+        self.assertTrue((user_dir / ".vault").is_file())
+        self.assertTrue((user_dir / "vault.enc").is_file())
+        self.assertTrue((user_dir / "vault.key").is_file())
+
+    def test_project_qa_orphan_with_invalid_key_fails_without_mutation(self):
+        user_dir = self.base_dir / "project_qa"
+        user_dir.mkdir(parents=True)
+        key_path = user_dir / "vault.key"
+        key_path.write_bytes(b"invalid-key")
+
+        with self.assertRaisesRegex(ValueError, "key material is invalid"):
+            get_user_vault("project_qa", self.base_dir)
+
+        self.assertTrue(key_path.is_file())
+        self.assertFalse((user_dir / "vault.enc").exists())
+        self.assertEqual(list(user_dir.glob("vault.key.backup-*")), [])
+
+    def test_key_only_orphan_for_other_users_still_fails_closed(self):
+        user_dir = self.base_dir / "alice"
+        user_dir.mkdir(parents=True)
+        key_path = user_dir / "vault.key"
+        key_path.write_bytes(Fernet.generate_key())
+
+        with self.assertRaisesRegex(ValueError, "incomplete"):
+            get_user_vault("alice", self.base_dir)
+
+        self.assertFalse((user_dir / "vault.enc").exists())
+        self.assertEqual(list(user_dir.glob("vault.key.backup-*")), [])
 
     def test_complete_legacy_pair_is_copied_without_deleting_legacy_files(self):
         user_dir = self.base_dir / "alice"

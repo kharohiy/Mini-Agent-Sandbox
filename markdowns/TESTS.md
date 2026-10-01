@@ -80,6 +80,16 @@
   mock test independently covers the symlink-refusal branch without elevated
   permissions. The full deterministic suite passed 197 tests with 20 expected
   skips.
+
+## Scoped project_qa orphan recovery — 2026-10-01
+
+- If only the key file exists for the `project_qa` vault pair, factory startup
+  writes and verifies a unique key backup before creating an encrypted empty
+  mapping with the preserved key. It does not decrypt or inspect a pre-existing
+  vault file.
+- Invalid keys, vault-only pairs, symlinks, conflicts, and key-only pairs for
+  other users remain fail-closed. The Vault/Guardrail regression suite passed
+  20 tests with one expected Windows symlink skip using temporary data only.
 - Tests use temporary roots only, contain no real secrets, and do not call
   Ollama, Chroma, Docker, Gradle, or a KMS.
 

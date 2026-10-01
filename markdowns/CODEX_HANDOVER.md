@@ -1021,3 +1021,13 @@ and timestamps are unchanged. Its user-provided description and optional
 GitHub URL are stored separately from the local checkout path. No branch or
 resolved revision was provided. No GitHub access, source edit, RAG rebuild,
 commit, or push occurred.
+
+## Scoped project_qa Vault orphan recovery — 2026-10-01
+
+`get_user_vault()` now repairs only the `project_qa` key-only orphan state:
+it verifies a unique backup of the preserved key before writing an encrypted
+empty mapping. Invalid keys, missing keys, conflicting or symlinked paths, and
+other users' incomplete pairs still fail closed. Focused Vault/Guardrail tests
+passed 20 tests with one expected Windows symlink skip. The live
+`data/project_qa` files were not changed in this verification; metadata-only
+inspection found both canonical and legacy pairs already present.
