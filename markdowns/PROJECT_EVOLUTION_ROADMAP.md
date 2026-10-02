@@ -1,3 +1,26 @@
+## Current operational checkpoint - 2026-10-02
+
+Named-file project retrieval now prioritizes exact snapshot paths and existing
+chunks; the original CheatCodes.kt question passed a real offline Runner run.
+The next user-set task after publishing these fixes is project-answer
+truncation, observed in the user's Navigation.kt transcript. The 200-token
+budget is a suspected cause; finish_reason confirmation remains outstanding.
+This is a follow-up repair, not a new phase or evidence of Phase 19 closure.
+
+Phase 18 remains locally complete within its documented scope. Phase 19's
+implementation is tested; its live acceptance is tracked separately in
+`OFFLINE_ACCEPTANCE_20261002.md`. Ordinary-QA answer quality is explicitly
+excluded from phase closure. The imposed JSON review format was removed and
+shared-book failure made optional. Older semantic labels below are historical.
+
+## Offline Q&A follow-up — 2026-10-02
+
+Within the active Phase 19 follow-up, general Q&A now separates model review
+from executable validation and reads the existing shared book collection
+without selecting a project. Thirteen focused regression tests pass. Live
+semantic acceptance remains open; see `PHASE19_PREPARATION.md`. This is not a
+new phase and does not close the separate live tool-breaker acceptance.
+
 ## Актуальный статус — выполнение ограниченного контура 2026-09-16
 
 - Historical `phase7_quality_final` сохранён без изменений (`in_progress`,
@@ -794,6 +817,26 @@ Ruff passed for the changed test module; `runner.py` retains 10 unrelated
 pre-existing findings. The full deterministic suite was not run. No external
 tools, network, model, RAG, Docker, or Gradle operation occurred. See
 `PHASE18_PREPARATION.md` for details.
+
+## Phase 19 — Make the per-turn tool breaker a hard boundary
+
+**Status:** Implementation and deterministic acceptance completed locally on
+2026-10-01; live Runner acceptance is inconclusive. Not committed or pushed.
+
+Analysis item 19 identifies that the current breaker is primarily a workflow
+escape: it trips on N+1 calls, and ordinary tasks hand off to Analyst instead
+of stopping. Documentation mode exits without an explicit breaker recovery
+state. Phase 19 specified the exact threshold and multi-call behavior, stopped
+dispatch at the boundary, persist a structured incident and fail-closed
+recovery state, and add deterministic tests for both task modes. `N` is the
+maximum number processed; attempt N+1 is blocked before dispatch. The saved
+`breaker_blocked` state is not resumable; session reset or a new task is
+required. Earlier calls are not rolled back. The focused regression module
+passed 2 tests; 11 adjacent resume, documentation-transition, and lifecycle
+tests passed. Global step/budget limits were left unchanged. See
+`PHASE19_PREPARATION.md`. Two local-only Runner attempts did not reach the
+breaker and stopped at Shift-Left validation; live end-to-end behavior remains
+unproven.
 
 ## Standalone task — Project Catalog and Project-Bound Q&A
 

@@ -1,8 +1,89 @@
-## Current checkpoint — Phase 18 completed locally
+## Runner entry point — ordinary questions and explicit project selection
+
+Run `python runner.py` to open the menu. Option **1** asks a general question
+without selecting a project. Enter the question after selecting 1, or type it
+directly at the menu prompt. Analyst drafts an answer and Reviewer returns the
+final answer. General questions now retrieve up to three excerpts from the existing
+shared `android_architecture_library` book collection. Both agents receive the
+same excerpts, labelled as untrusted technical references; the console lists
+book filenames and chunk IDs. This path has no filesystem tools, project lookup,
+project/user RAG, code validation, or regulator call. It does not reset or resume saved code tasks.
+It uses the existing Analyst/Reviewer models and routing settings from
+`roles.json`, with conversation prompts rather than the code-generation prompts.
+
+Actual CLI runs return answers and exit after the two agent turns. This
+repairs the observed question-to-codegen loop. Reviewer returns ordinary
+text/Markdown, not a mandatory JSON assessment. Empty, truncated or tool-call
+responses still stop visibly. Exit 0 means this conversation route completed;
+it does not certify generated code. Completion telemetry `Success` describes
+only a successful model call.
+
+The library reader opens only the existing global collection, never a project
+registry or project collection, and uses local Nomic embeddings. Missing or
+failed book retrieval is reported and the question continues without books.
+It does not ingest PDFs or rebuild the index. For camel-case technical names,
+up to two exact identifier/spaced-name passages precede vector hits, with table
+of contents entries excluded from that literal stage. This addresses the
+observed SlotTable ranking miss without changing project retrieval. Retrieved
+passages remain candidates, not proof of correctness.
+
+See `OFFLINE_ACCEPTANCE_20261002.md` for actual runtime results and unresolved
+boundaries. Answer quality is distinct from orchestration acceptance.
+
+Known project-Q&A limitation (2026-10-02): each agent has a 200-output-token
+budget and this path does not yet check finish_reason for truncation. A user-run
+Navigation.kt request found the correct source but ended mid-code and omitted
+its explanation. Investigation is pending; this is not resolved by the filename
+retrieval fix. Project Q&A defaults to selected-project evidence only
+(`include_technical_reference=False`); optional technical-book references are
+not enabled by menu selection. General-QA truncation handling described above
+does not imply equivalent handling in project Q&A.
+
+Option **2** opens the registered-project catalog; a project is attached only
+after the user selects it there. Option **3** explicitly starts a code task.
+`python runner.py USER` also opens the menu; the old direct code-task entry is
+now `python runner.py --code USER`. `--project-qa`, `--resume`, and project-patch
+commands remain available. `--help` prints usage without creating a task.
+
+For Git Bash, ordinary local question answering is:
+
+```bash
+export MINI_AGENT_OFFLINE=1
+python runner.py
+```
+
+Select **1**, then enter the question verbatim. The direct equivalent is
+`python runner.py --ask 'mobile kotlin coroutines. show few examples of dispatchers'`.
+Omitting the offline variable uses the configured routing policy; it does not
+automatically authorize cloud access. Console output is line-buffered, and each
+model dispatch reports its actual provider/model and any safe failure category.
+Questions finish after the two agent turns or report a failure; they never
+fall through to code generation. Runtime guardrail/Vault mappings and model
+telemetry still use the normal completion facade.
+
+Code-task validation reports its redacted reason and stops with
+`validation_blocked` after two consecutive identical failures. This is separate
+from the per-turn tool-call limit; it does not grant validation or approval.
+
+## Phase 19 checkpoint — live breaker acceptance remains inconclusive
 
 Phase 18 removed the unreachable mocked confirmation branch for unsupported
 external tools and preserved exact-hash user approval for reviewed project
 patches. See `PHASE18_PREPARATION.md` for its verification record.
+
+Phase 19 makes the per-turn tool-call limit a hard stop: calls 1..N may be
+processed and call N+1 is blocked before dispatch. The incident is persisted
+with `status="breaker_blocked"`; the task cannot resume. Run
+`python runner.py --reset USER` to clear only session state, or start a new
+task. Calls processed before the block are not rolled back. See
+`PHASE19_PREPARATION.md` for deterministic verification. Live Runner acceptance
+is not yet established. Follow-up hardens dispatch durability: each tool result
+is saved before continuing the turn, and early errors persist redacted
+category/type/stage metadata. A failure-injection regression and adjacent
+tests pass 15/15. The preserved live probe remains incomplete and is not claimed
+as acceptance. A system-library concept probe produced an answer artifact but
+repeated Markdown writes until the five-minute cap; retrieval provenance is not
+persisted. See `PHASE19_PREPARATION.md`.
 
 The approved standalone Project Catalog and Project-Bound Q&A task is
 implemented locally; it does not designate a new numbered phase. The
@@ -17,6 +98,12 @@ the connected source tree and legacy user RAG. Both Runner and the compatibility
 `project_qa.py` entry point call `project_qa_service.py`. Project-Q&A has
 separate Analyst/Reviewer settings in `roles.json` and still uses the normal
 router and project provider policy.
+
+When a project question names a file such as `CheatCodes.kt`, quotes are
+optional: the reader resolves the filename against that project's saved snapshot
+before generic search. It supplies that file's stored chunks rather than unrelated
+neighbours. Multiple matching paths require a project-relative path. Missing
+indexed evidence is not proof that the file is absent from the live checkout.
 
 Before calling a model, Q&A validates retrieved project-code source paths and
 file hashes against the registered project's saved snapshot and reports its
@@ -179,7 +266,7 @@ The project's architecture is built around a 4-stage data processing pipeline th
 - **Mini Presidio (Layered DataGuardrail)**: Three-tier serverless leak protection: Regex, Contextual Validation, and Tokenization Engine (two-way obfuscation with substitution by tokens like `__VAULT_SECRET_...__`). Includes a Deobfuscation Vault (VaultRegistry) that encrypts the key map (Fernet AES-128) and unpackages tokens (Runner-Interceptor) on the fly before local code execution.
 - **Prompt Injection Protection**: Includes Affirmative Reframing (CBSI framework), RAG Isolation (escaping extracted facts with XML tags), and Output Integrity Guardrails.
 - **Tool and patch boundaries**: Unregistered tools, including external email, calendar, and web-search tools, are rejected by default. For project patches, a positive Reviewer decision is followed by explicit user approval bound to the exact diff SHA-256 before trusted validation. There is no general-purpose console HITL for arbitrary critical tools. Agents also have no direct system-shell tool.
-- **Tool Circuit Breaker**: Protection against agent looping (Excessive Requests) with a hard limit (`MAX_TOOL_CALLS_PER_TURN = 5`). If exceeded, execution is interrupted (`SECURITY BLOCK`).
+- **Tool Circuit Breaker**: Processes at most `MAX_TOOL_CALLS_PER_TURN = 5` calls per ordinary agent turn (3 in documentation mode). Attempt N+1 is blocked before dispatch; a structured incident is saved and the task becomes non-resumable until session reset or a new task.
 
 ### 3. AI Analysis & Orchestration
 - **Multi-Agent Debate**: Coder, Reviewer, Analyst, and Arbitrator debate until the `APPROVE` status is reached. The Reviewer Agent is reinforced with strict protocols: **SIX-DIMENSIONAL AUDIT METHOD** (code analysis across 6 vectors: dependencies, logic, access rights, etc.) and **AUDIT WORKFLOW** (a 4-step check with mandatory Unit test requirements and Slopsquatting protection). Built-in Arbitrated Debate & Graceful Abandonment safeguard (forced loop termination at step 8). A hard session reset is a defense against **Long-Session Failure (Silent Context Loss)**, preventing agents from forgetting initial requirements when logs grow excessively.

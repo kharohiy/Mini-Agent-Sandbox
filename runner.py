@@ -1,4 +1,5 @@
 import json
+import hashlib
 import time
 import os
 import sys
@@ -12,6 +13,7 @@ import logging
 from rag_service import SandboxRagService
 from project_retrieval import format_retrieval_context, retrieve_project_context
 from project_qa_service import ProjectQaError, ProjectQaService
+from question_answering import QuestionAnswerError, QuestionAnswerService
 from ollama_runtime import unload_ollama_models
 from project_telemetry import ProjectTelemetryStore
 from project_policy import ProjectPolicyStore, default_policy
@@ -36,7 +38,7 @@ def configure_console_output():
     """Keep background Windows runs from failing when a legacy console cannot encode text."""
     if hasattr(sys.stdout, "reconfigure"):
         try:
-            sys.stdout.reconfigure(encoding="utf-8", errors="backslashreplace")
+            sys.stdout.reconfigure(encoding="utf-8", errors="backslashreplace", line_buffering=True, write_through=True)
         except (OSError, ValueError):
             pass
 
@@ -68,6 +70,7 @@ litellm.drop_params = True
 ROLES_FILE = "roles.json"
 MAX_TOOL_CALLS_PER_TURN = 5
 MAX_AGENT_STEPS = 10
+MAX_REPEATED_VALIDATION_FAILURES = 2
 
 AGENT_TOOLS = [
     {
@@ -379,8 +382,11 @@ class SandboxStorage:
         state_file = os.path.join(self._get_user_dir(user_id), "state.json")
         with open(state_file, "w", encoding="utf-8") as f:
             json.dump(state, f, ensure_ascii=False, indent=2)
-        keys_changed = list(state.keys())
-        logger.info(f"STORAGE Tier-1 updated for user {user_id}. Keys changed: {keys_changed}")
+        logger.info(
+            "[State] user=%s status=%s agent=%s steps=%s tool_results=%s",
+            user_id, state.get("status"), state.get("current_turn"),
+            state.get("agent_steps", 0), len(state.get("tool_executions", [])),
+        )
 
     def _load_all_facts(self, user_id):
         facts_file = os.path.join(self._get_user_dir(user_id), "project_facts.json")
@@ -810,6 +816,54 @@ def ask_registered_project(project_id, question, *, include_technical_reference=
     )
 
 
+def run_question_cli(user_id="user_123", question=None):
+    try:
+        if question is None:
+            question = input("Enter a question (empty to exit): ")
+        if not question.strip():
+            return 0
+        print("\n[Mode] General question. No project selected. Analyst -> Reviewer.")
+        service = QuestionAnswerService(completion=safe_llm_completion, progress=print)
+        result = service.ask(question, user_id=user_id)
+        print("\n=== FINAL ANSWER ===")
+        print(result["answer"])
+        print("\n[System] Both model calls completed. Review is model-only; code compilation/tests were not run.")
+        return 0
+    except QuestionAnswerError as error:
+        print(f"Question answering stopped: {error}", file=sys.stderr)
+        return 1
+    except (KeyboardInterrupt, EOFError):
+        print("\nQuestion cancelled.", file=sys.stderr)
+        return 130
+    finally:
+        unload_ollama_models()
+
+
+def run_runner_menu(user_id="user_123"):
+    print("\nMini Agent Sandbox")
+    print("1. Ask a question (no project)")
+    print("2. Select a project and ask about it")
+    print("3. Code task (allows workspace file changes)")
+    print("0. Exit")
+    selection = input("Choice [1], or type your question: ").strip()
+    if selection == "0":
+        return 0
+    if selection == "2":
+        return run_project_qa_cli()
+    if selection == "3":
+        try:
+            run_agent_loop(user_id=user_id)
+            return 0
+        finally:
+            unload_ollama_models()
+    if selection in {"", "1"}:
+        return run_question_cli(user_id)
+    if selection.isdecimal():
+        print("Unknown menu option.", file=sys.stderr)
+        return 2
+    return run_question_cli(user_id, selection)
+
+
 def run_project_qa_interactive():
     projects = ProjectRegistry().list()
     if not projects:
@@ -937,12 +991,29 @@ def _validate_kotlin_workspace(workspace: Path) -> tuple[bool, str]:
 
 def _validate_documentation_workspace(workspace: Path) -> tuple[bool, str]:
     """Allow Markdown-only task output without pretending it is executable code."""
-    metadata_names = {"state.json", "telemetry.json", "project_facts.json", "proposed_facts.json", ".vault_key"}
+    metadata_names = {
+        "state.json", "telemetry.json", "project_facts.json", "proposed_facts.json",
+        ".vault_key", "vault.enc", "vault.key",
+    }
     files = [path for path in workspace.rglob("*") if path.is_file()]
     artifacts = [path for path in files if path.name not in metadata_names]
     if artifacts and all(path.suffix.lower() == ".md" for path in artifacts):
         return True, "Documentation-only workspace; no executable source to validate."
     return False, "No supported source files found for validation."
+
+
+def _runner_error_category(error: Exception, stage: str) -> str:
+    if isinstance(error, ModelProviderExhausted):
+        return "model_provider"
+    if isinstance(error, json.JSONDecodeError):
+        return "invalid_tool_arguments"
+    if isinstance(error, OSError):
+        return "workspace_io"
+    return {
+        "model_completion": "model_completion",
+        "tool_dispatch": "tool_dispatch",
+        "turn_finalization": "turn_finalization",
+    }.get(stage, "runner_internal")
 
 
 def validate_generated_code(file_path: str) -> tuple[bool, str]:
@@ -1014,6 +1085,11 @@ def reverse_language_gateway(text, target_lang):
 def _load_resumable_state(storage, user_id, roles):
     """Load only an interrupted, structurally usable agent session."""
     state = storage.get_current_state(user_id)
+    if isinstance(state, dict) and state.get("status") == "breaker_blocked":
+        raise ValueError(
+            "This task was stopped by the tool-call circuit breaker and cannot be resumed. "
+            "Use --reset USER to clear its session state, or start a new task."
+        )
     if not isinstance(state, dict) or state.get("status") != "in_progress":
         raise ValueError("No interrupted task is available to resume for this user.")
     if not isinstance(state.get("task"), str) or not state["task"].strip():
@@ -1103,6 +1179,8 @@ def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=N
     task_mode = state.get("task_mode", "code")
     contract = documentation_contract(state) if task_mode == "documentation" else None
     print(f"\nStarting Multi-Agent Sandbox for user: {user_id}...")
+    if MODEL_ROUTER.offline_mode:
+        print("[Routing] Offline mode active; model completions are restricted to Ollama.")
     
     step_count = max(0, int(state.get("agent_steps", 0)))
     if project_id and state.get("proposal_step_id") and not state.get("patch_proposal"):
@@ -1310,6 +1388,7 @@ def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=N
             documentation_written = False
             documentation_write_rejected = False
             project_proposal_recorded = False
+            error_stage = "turn_setup"
             
             while True:
                 turn_tools = agent_tools_for_task_mode(
@@ -1323,6 +1402,7 @@ def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=N
                 m["last_context_count_mode"] = context_count.mode
                 window_utilization_pct = (context_count.tokens / max_tokens) * 100
                 
+                error_stage = "model_completion"
                 response = safe_llm_completion(
                     model=agent_config.get("model", "gemini/gemini-2.5-flash"),
                     messages=messages,
@@ -1347,6 +1427,7 @@ def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=N
                 )
                 
                 message = response.choices[0].message
+                error_stage = "response_handling"
                 
                 # We collect metrics from all iterations (including tool calls).
                 if hasattr(response, 'usage'):
@@ -1357,17 +1438,41 @@ def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=N
                     messages.append(message.model_dump()) # Adding the Tula query to the history.
                     
                     for tool_call in message.tool_calls:
+                        error_stage = "tool_dispatch"
                         tool_calls_this_turn += 1
                         max_tool_calls = 3 if task_mode == "documentation" else MAX_TOOL_CALLS_PER_TURN
                         if tool_calls_this_turn > max_tool_calls:
-                            print("\n[Security] Excessive Requests / Tool Noise detected! Circuit Breaker triggered.")
+                            incident = {
+                                "type": "tool_call_limit_exceeded",
+                                "agent": current_turn,
+                                "task_mode": task_mode,
+                                "limit": max_tool_calls,
+                                "attempted_call_number": tool_calls_this_turn,
+                                "processed_calls_before_block": tool_calls_this_turn - 1,
+                                "recovery": "reset_session_or_start_new_task",
+                                "occurred_at": datetime.now(timezone.utc).isoformat(),
+                            }
+                            state["status"] = "breaker_blocked"
+                            state["breaker_incident"] = incident
+                            print(
+                                "\n[Security] Tool-call circuit breaker stopped the task "
+                                f"before call {tool_calls_this_turn} (limit {max_tool_calls}; "
+                                f"{tool_calls_this_turn - 1} call(s) were processed)."
+                            )
+                            print(
+                                f"[Security] Incident recorded. Run `python runner.py --reset {user_id}` "
+                                "to clear this session, or start a new task. Previously processed calls "
+                                "were not rolled back."
+                            )
                             state.setdefault("memory", []).append({
                                 "role": "user",
-                                "content": "SECURITY BLOCK: Tool Rate Limit Exceeded. Passing turn to Analyst to stabilize.",
+                                "content": (
+                                    "SECURITY BLOCK: Tool-call circuit breaker stopped the task before "
+                                    f"call {tool_calls_this_turn}; incident {incident['type']} recorded. "
+                                    "Previously processed calls were not rolled back."
+                                ),
                                 "timestamp": datetime.now(timezone.utc).isoformat()
                             })
-                            if task_mode != "documentation":
-                                state["current_turn"] = "analyst"
                             breaker_triggered = True
                             break
                             
@@ -1433,6 +1538,7 @@ def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=N
                                     "raw_result": tool_result,
                                     "timestamp": datetime.now(timezone.utc).isoformat(),
                                 })
+                                storage.save_state(user_id, state)
                                 messages.append({
                                     "role": "tool",
                                     "name": func_name,
@@ -1495,6 +1601,7 @@ def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=N
                                 "raw_result": tool_result,
                                 "timestamp": datetime.now(timezone.utc).isoformat()
                             })
+                            storage.save_state(user_id, state)
                             messages.append({
                                 "role": "tool",
                                 "name": func_name,
@@ -1510,14 +1617,13 @@ def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=N
                         break
                     # We proceed to the next `while` loop iteration so the model can provide a final answer based on the tool's result.
                 else:
+                    error_stage = "turn_finalization"
                     answer = message.content
                     break
             
             if breaker_triggered:
                 storage.update_state_metrics(user_id, state, tokens_used, cost, window_utilization_pct)
-                if task_mode == "documentation":
-                    break
-                continue
+                break
 
             if project_proposal_recorded:
                 storage.update_state_metrics(user_id, state, tokens_used, cost, window_utilization_pct)
@@ -1565,7 +1671,21 @@ def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=N
                 else:
                     is_clean, validation_error = validate_generated_code(user_workspace)
                 if not is_clean:
-                    print("\n[Shift-Left Validation] 🚨 Intercepted error before Reviewer. Returning to Coder.")
+                    print("\n[Shift-Left Validation] " + guardrail.run(validation_error, user_id))
+                    if task_mode == "code" and not state.get("proposal_step_id"):
+                        failure_hash = hashlib.sha256(validation_error.encode("utf-8")).hexdigest()
+                        previous_failure = state.get("validation_failure", {})
+                        repetitions = (
+                            previous_failure.get("consecutive", 0) + 1
+                            if previous_failure.get("sha256") == failure_hash else 1
+                        )
+                        state["validation_failure"] = {"sha256": failure_hash, "consecutive": repetitions}
+                        if repetitions >= MAX_REPEATED_VALIDATION_FAILURES:
+                            state["status"] = "validation_blocked"
+                            print(f"[Validation] Same failure repeated {repetitions} times; task stopped. No approval was given.")
+                            storage.update_state_metrics(user_id, state, tokens_used, cost, window_utilization_pct)
+                            break
+                    print("[Validation] Returning to Coder for correction.")
                     state["current_turn"] = "coder"
                     correction = (
                         f"Validation Error! {validation_error}"
@@ -1580,6 +1700,7 @@ def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=N
                     storage.update_state_metrics(user_id, state, tokens_used, cost, window_utilization_pct)
                     continue
 
+                state.pop("validation_failure", None)
                 state["current_turn"] = "reviewer"
             elif current_turn == "reviewer":
                 reviewer_decision = parse_reviewer_decision(answer)
@@ -1659,8 +1780,22 @@ def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=N
             
             storage.update_state_metrics(user_id, state, tokens_used, cost, window_utilization_pct)
             
-        except Exception as e:
-            print(f"Error during LLM call: {e}")
+        except Exception as error:
+            error_record = {
+                "category": _runner_error_category(error, error_stage),
+                "exception_type": type(error).__name__,
+                "stage": error_stage,
+                "agent": current_turn,
+                "task_mode": task_mode,
+                "occurred_at": datetime.now(timezone.utc).isoformat(),
+            }
+            state["last_runner_error"] = error_record
+            storage.save_state(user_id, state)
+            print(
+                "Error during LLM call "
+                f"(category={error_record['category']}, "
+                f"type={error_record['exception_type']}, stage={error_stage})."
+            )
             break
             
     if state.get("status") == "completed":
@@ -1692,8 +1827,8 @@ def run_agent_loop(user_id, *, resume=False, project_id=None, proposal_step_id=N
         except Exception as e:
             print(f"Failed to formulate final response: {e}")
 
-    # Trigger regulator at the end of the session
-    trigger_regulator(user_id)
+    if state.get("status") not in {"breaker_blocked", "validation_blocked"}:
+        trigger_regulator(user_id)
 
 def reset_session_state(user_id):
     storage = SandboxStorage(base_dir="data")
@@ -1708,7 +1843,21 @@ def clear_session_history(user_id):
     return reset_session_state(user_id)
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "--project-qa":
+    if len(sys.argv) > 1 and sys.argv[1] in {"--help", "-h"}:
+        print("python runner.py [USER]                 interactive menu")
+        print("python runner.py --ask [QUESTION]       question without a project")
+        print("python runner.py --project-qa           select a project, then ask")
+        print("python runner.py --code [USER]          explicit code task")
+        print("python runner.py --resume [USER]        resume a saved code/documentation task")
+        print("python runner.py --reset USER           reset only session state")
+    elif len(sys.argv) > 1 and sys.argv[1] == "--ask":
+        raise SystemExit(run_question_cli(question=" ".join(sys.argv[2:]) or None))
+    elif len(sys.argv) > 1 and sys.argv[1] == "--code":
+        try:
+            run_agent_loop(user_id=sys.argv[2] if len(sys.argv) > 2 else "user_123")
+        finally:
+            unload_ollama_models()
+    elif len(sys.argv) > 1 and sys.argv[1] == "--project-qa":
         raise SystemExit(run_project_qa_cli())
     elif len(sys.argv) > 5 and sys.argv[1] == "--project-patch-task":
         try:
@@ -1738,9 +1887,12 @@ if __name__ == "__main__":
         finally:
             unload_ollama_models()
     else:
+        if len(sys.argv) > 1 and sys.argv[1].startswith("-"):
+            print("Unknown option. Use python runner.py --help.", file=sys.stderr)
+            raise SystemExit(2)
         target_user = sys.argv[1] if len(sys.argv) > 1 else "user_123"
         try:
-            run_agent_loop(user_id=target_user)
-        finally:
-            # We clear memory after the session ends (whether due to a crash or a normal termination).
-            unload_ollama_models()
+            raise SystemExit(run_runner_menu(target_user))
+        except (KeyboardInterrupt, EOFError):
+            print("\nCancelled.", file=sys.stderr)
+            raise SystemExit(130) from None

@@ -6,16 +6,31 @@ import tempfile
 from contextlib import redirect_stdout
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import project_qa
 import runner
 from ollama_runtime import unload_ollama_models
 from project_qa_service import ProjectQaError, ProjectQaService
 from project_registry import ProjectRegistry
+from project_retrieval import AmbiguousProjectFile
 
 
 class ProjectQaTests(unittest.TestCase):
+    def test_ambiguous_filename_is_reported_before_any_model_call(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            registry, project, roles_path, _ = self.create_project_fixture(Path(temporary))
+            completion = Mock()
+            service = ProjectQaService(
+                completion=completion, registry=registry, roles_path=roles_path,
+                project_retriever=Mock(side_effect=AmbiguousProjectFile(
+                    "Model.kt matches one/Model.kt, two/Model.kt. Specify the project-relative path."
+                )),
+            )
+            with self.assertRaisesRegex(ProjectQaError, "Specify the project-relative path"):
+                service.ask(project["id"], "Explain Model.kt")
+            completion.assert_not_called()
+
     @staticmethod
     def create_project_fixture(root):
         source_root = root / "source"

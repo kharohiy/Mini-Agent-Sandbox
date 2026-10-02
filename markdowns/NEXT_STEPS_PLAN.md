@@ -1,12 +1,112 @@
-## Current checkpoint — Phase 18 completed locally
+## Current user-directed priority - 2026-10-02
+
+1. Publish the accumulated offline fixes and this documentation checkpoint.
+2. Then investigate project-Q&A output truncation: the user's Navigation.kt
+   answer found the correct file but stopped mid-code, without the requested
+   explanation. Inspect completion metadata/finish_reason and the existing
+   200-output-token budget per agent before choosing a narrow repair. Do not
+   infer the stop reason from the transcript alone or redesign agent contracts.
+3. Keep project facts grounded in selected-project evidence; any future book
+   augmentation provides separately labelled technical explanations. No corpus
+   reindexing or GTA modification is justified by the observed truncation.
+
+Phase 18 remains closed; Phase 19 live N+1 acceptance remains open. The earlier
+code/breaker work below is still unresolved but follows this user-set priority.
+No further model run is required merely to publish the documented fixes.
+
+## Earlier next work after actual acceptance - 2026-10-02
+
+QA routes completed; do not rework them based on prose-quality judgments.
+Phase 18 remains closed. Phase 19 live N+1 acceptance and a successful full
+code-task route remain open. Start with the code/breaker transcripts in
+`data/offline-acceptance-20261002`: duplicate file writes and tool-shaped ordinary
+content are recorded. Determine the narrow protocol/workflow defect before
+changing prompts, tool parsing or orchestration. Do not execute assistant text
+as tools or use GTA/Gradle to force a pass. The CLI's exit 0 for blocked tasks
+is also recorded as a separate unresolved presentation issue. No new broad
+model retry loop is prescribed. See `OFFLINE_ACCEPTANCE_20261002.md`.
+
+## Active priority - actual offline orchestration acceptance
+
+Follow `OFFLINE_ACCEPTANCE_20261002.md`. The user authorized restoring ordinary
+Reviewer text output, optional book failure handling, and actual CLI scenarios:
+general QA, book QA, explicitly selected project QA, isolated code-task failure
+handling, and the real per-turn tool breaker. Preserve all evidence. Generated
+answer accuracy is a separate topic and is not a phase/runtime pass criterion.
+Phase 18 is complete within its deterministic scope. Phase 19's live acceptance
+must be judged from the recorded N+1 event, not from successful Q&A.
+
+## Historical priorities below - superseded where they grade answer semantics
+
+## Active priority — offline Q&A correctness and shared-book evidence
+
+2026-10-02: structured model review and an isolated shared-book reader are
+implemented. This restores book access for ordinary questions while keeping
+project selection explicit. Thirteen focused tests pass. One real run without
+books still produced an invalid import; model review is not a correctness gate.
+The book-enabled run retrieved three irrelevant reflection/DSL excerpts for
+the dispatcher question. All three original PDFs remain represented in the
+2,293-chunk index. Two literal `Dispatchers` hits concern Compose in browsers,
+not the requested Android dispatcher examples. Do not infer adequate coverage
+from a non-empty retrieval or replace missing evidence with invented citations.
+The book-enabled answer also remains incorrect (lifecycleScope context/imports);
+both runs finished and models are unloaded. Read the latest preparation result before further work; no blind retries or
+new corpus ingestion. Preserve all profiles and the original failed state.
+
+## Previous priority — repair the ordinary Runner question/answer workflow
+
+The user authorized repairing the CLI workflow and completing the actual
+Runner run with `mobile kotlin coroutines. show few examples of dispatchers`.
+General questions must have no project unless explicitly selected in the menu.
+The new menu and bounded Analyst/Reviewer path completed actual CLI runs with
+both user questions, final text, exit code 0 and automatic unload. The repeated
+code-validation loop no longer occurs for general questions. Reviewer still
+accepted incorrect coroutine snippets and terminology: semantic correctness
+remains open. Do not turn this workflow result into an all-system success
+claim or repeat blind model retries. See `CODEX_HANDOVER.md` and the exact run
+records in `PHASE19_PREPARATION.md`. Preserve the user's failed `user_123` run.
+
+## Previous priority — Phase 19 offline Ollama follow-up
+
+The Phase 19 breaker implementation and deterministic tests are complete
+locally, but live Runner acceptance is inconclusive. The user authorized
+stepwise diagnosis and fixes. Step 1 (saved-trace comparison) is complete:
+Phase 7 has a completed offline run and saved Ollama/Qwen telemetry, while both
+Phase 19 attempts also used only Ollama/Qwen. The historical state aggregates
+15 telemetry records over about an hour and does not preserve raw response
+shapes or a run ID; it cannot establish whether those successful tool calls
+used native `tool_calls`. The two failed states record 2 failed `read_file`
+calls and 1 successful `create_file`; afterward tool-call-shaped JSON was
+handled as ordinary assistant content. Neither run reached the breaker.
+One approved Runner CLI probe created its expected artifact in a disposable
+workspace with Ollama-only telemetry, but its saved state has zero tool-execution
+records and remains `in_progress`. The confirmed Markdown validator defect
+that counted `vault.enc`/`vault.key` as artifacts is fixed; focused tests pass
+7/7. Source confirmed tool execution was saved only after the turn and caught
+exceptions were not persisted. The exact exception from the live probe is
+unrecoverable. Runner now saves each dispatch result immediately and persists
+safe early-error metadata. The new interruption regression plus breaker,
+documentation-transition, and validation tests passed 15/15. One offline
+system-library Runner probe then generated a 1,560-byte answer citing *Jetpack
+Compose Internals* but repeated `create_file` three times; the five-minute cap
+stopped it before Reviewer/completion. The tool records persisted, but retrieval
+hits are not saved, so grounding is unverified. Current step: inspect/fix
+repeated-write turn behavior and retrieval provenance; do not resume either
+probe profile or make another model request without approval. Follow
+`PHASE19_PREPARATION.md` and
+`PHASE19_CONTINUATION_PROMPT.md` in order.
+
+## Current checkpoint — Phase 19 implementation complete locally
 
 Phase 18 removed the unreachable mocked confirmation branch for unsupported
 external tools, preserved exact-hash human approval for project patches, and
 corrected the general-HITL documentation. The focused capability tests passed
 6/6; the patch-approval API test passed 1/1. Ruff passed for the modified test
 module; `runner.py` retains 10 pre-existing findings. See
-`PHASE18_PREPARATION.md` for the completion record. No subsequent phase is
-designated yet.
+`PHASE18_PREPARATION.md` for the completion record. Phase 19's implementation
+and deterministic acceptance are complete locally; live Runner acceptance is
+inconclusive and needs separate diagnosis. See `PHASE19_PREPARATION.md` and
+`PHASE19_CONTINUATION_PROMPT.md`.
 
 **Standalone approved task — Project Catalog and Project-Bound Q&A:** implemented
 locally and recorded in `TASK_PROJECT_CATALOG_AND_QA.md`; this does not create
@@ -28,8 +128,8 @@ synchronized with `origin/main`.
 boundary now uses an empty default-deny production registry. `runner.py`
 authorizes a tool before capability-scoped resolution; current agent-visible
 tools retain opaque tokens. Focused tests passed 5/5 and the deterministic
-suite passed 202 tests with 20 expected skips; see `PHASE17_PREPARATION.md`
-and `PHASE17_CONTINUATION_PROMPT.md`.
+suite passed 202 tests with 20 expected skips; the completion is retained here
+and in the roadmap. The standalone Phase 17 files were removed.
 
 **Phase 16 scope — completed:** analysis item 16 was reconciled with the
 existing tenant factory and completed with an explicit canonical

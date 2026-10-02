@@ -65,5 +65,25 @@ class LanguageValidationTests(unittest.TestCase):
 
         self.assertTrue(is_clean)
         self.assertIn("Documentation-only", message)
+
+    def test_markdown_only_workspace_ignores_vault_runtime_files(self):
+        (self.workspace / "architecture_summary.md").write_text("# Architecture\\n", encoding="utf-8")
+        (self.workspace / "vault.enc").touch()
+        (self.workspace / "vault.key").touch()
+
+        is_clean, message = validate_generated_code(self.workspace)
+
+        self.assertTrue(is_clean)
+        self.assertIn("Documentation-only", message)
+
+    def test_vault_runtime_files_alone_do_not_pass_documentation_validation(self):
+        (self.workspace / "vault.enc").touch()
+        (self.workspace / "vault.key").touch()
+
+        is_clean, message = validate_generated_code(self.workspace)
+
+        self.assertFalse(is_clean)
+        self.assertIn("No supported source files", message)
+
 if __name__ == "__main__":
     unittest.main()

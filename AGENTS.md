@@ -16,9 +16,13 @@ non-trivial change, read it in this order:
 3. `markdowns/NEXT_STEPS_PLAN.md` — active priority.
 4. `markdowns/PROJECT_EVOLUTION_ROADMAP.md` — approved milestones.
 5. `markdowns/TESTS.md` — security-test scenarios.
-6. The latest phase records in `markdowns/` (Phase 18 is completed; consult
-   `PHASE18_PREPARATION.md` and `PHASE18_CONTINUATION_PROMPT.md` as its scope
-   and completion record. No subsequent phase is designated here).
+6. The active Phase 19 follow-up repairs ordinary Runner question answering.
+   Read `PHASE19_CONTINUATION_PROMPT.md` and the latest acceptance record in
+   `PHASE19_PREPARATION.md`. The user authorized the CLI repair and a real
+   Runner run with the supplied question. General questions have no project;
+   project Q&A requires explicit selection. Preserve the user's `user_123`
+   failed run and all earlier probe profiles. Do not equate deterministic
+   results with a successful model answer or closure of the live breaker test.
 7. `markdowns/mini_agent_sandbox_analysis.md` when architectural context is
    needed.
 

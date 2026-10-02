@@ -1,3 +1,139 @@
+## Publication checkpoint and next task - 2026-10-02
+
+The user authorized documenting and committing/pushing the accumulated offline
+fixes before further implementation. This checkpoint supersedes historical
+priorities below; it does not close Phase 19. Phase 18 remains closed within its
+documented scope. See `OFFLINE_ACCEPTANCE_20261002.md` for actual run evidence.
+
+The user's subsequent Navigation.kt run selected the correct source, but the
+answer stopped inside `onNavigateToGtaV = { nav` and omitted the explanation.
+Project Q&A currently requests max_tokens=200 for each agent and does not check
+finish_reason for truncation. The limit is a plausible cause, not a confirmed
+stop reason from that transcript. After publication, investigate this bounded
+output defect first. No token-budget or agent-chain change is part of this
+documentation checkpoint. Book augmentation is optional and disabled by default
+for project Q&A; enabling books would not itself resolve output truncation.
+
+Earlier statements that no commit/push occurred describe their own checkpoints.
+Runtime evidence, vaults, indexes and user data remain local and outside Git.
+
+## Subsequent named-file RAG repair - 2026-10-02
+
+The user's CheatCodes.kt query exposed a source-ranking bug: the file already
+exists in snapshot/Chroma, but general words displaced it before context reached
+the agents. Explicit filenames now resolve against the selected snapshot first;
+only their stored chunks are supplied, with existing hash checks retained.
+Duplicate basenames require a relative path. No quotes are required in a normal
+question. This changes project retrieval, superseding the earlier checkpoint's
+statement that its source files were unchanged. No source/corpus reindexing,
+role/status change or phase closure is involved. See the latest preparation
+record and `data/offline-acceptance-20261002/project-filename` for acceptance.
+The exact real Runner question passed: both local turns, the correct sole source,
+exit 0, 81.65 seconds, models unloaded. Phase 19 live N+1 remains open.
+
+### Runtime acceptance outcome - 2026-10-02
+
+See `OFFLINE_ACCEPTANCE_20261002.md` and the captured real CLI evidence under
+`data/offline-acceptance-20261002`. General QA, book QA after a bounded literal
+retrieval fix, and explicitly selected GTA QA completed through both agents.
+The code-task created the same file twice then stopped at `validation_blocked`
+for a missing wrapper. The live breaker attempt returned tool-shaped text,
+executed zero tools, and never reached N+1. Therefore Phase 18 remains closed
+within its original scope; Phase 19 live acceptance remains OPEN. No full
+successful code-task workflow is claimed. Process exit 0 is not task completion.
+Final focused/adjacent tests: 14 + 35 = 49 passed; this was not a full suite.
+All 19 historical states are unchanged; library counts remain 2,293 and 393;
+models are unloaded. Generated-answer accuracy is outside runtime acceptance.
+
+## Current scope correction and runtime acceptance - 2026-10-02
+
+The user explicitly separated answer accuracy from Mini Agent Sandbox runtime
+correctness and authorized auditing the diff, removing unnecessary ordinary-QA
+contract changes, and running real isolated acceptance scenarios. The prior
+"semantic acceptance failed" labels below are historical assistant assessments,
+NOT failures of orchestration and NOT current phase acceptance criteria.
+
+The added ordinary Reviewer JSON contract has been removed. Reviewer again
+returns plain text/Markdown; code-task and project-patch review are unchanged.
+Shared-book retrieval failure is visible but no longer blocks ordinary QA.
+A real SlotTable query exposed irrelevant vector hits despite existing exact
+book passages. The global reader now prioritizes up to two literal camel-case
+identifier/spaced-name passages, excludes contents listings from that stage,
+and fills remaining slots from vector retrieval. No corpus rebuild or project
+RAG change is involved.
+
+Current run evidence, baseline backup, diff decisions and exact acceptance
+boundaries are in `OFFLINE_ACCEPTANCE_20261002.md`. Do not claim full acceptance
+from targeted tests, process exit alone, or prose quality. Preserve all original
+states and new acceptance profiles. No automatic rollback, role/model changes,
+GTA writes/builds, or unrelated orchestration changes are authorized.
+
+## Superseded review-quality framing (historical)
+
+## Current offline Q&A repair — 2026-10-02
+
+The user authorized review-quality repairs and clarified that ordinary questions
+must have access to the shared three-book library without attaching GTA.
+`question_answering.py` now validates a structured Reviewer result (decision,
+corrections, uncertainties, answer). Invalid records stop without retry;
+uncertainty is visible with exit 2. Runner no longer prints "Question answered"
+merely because both model calls finished; compilation/tests remain explicitly
+not run. These are model assessments, not correctness certificates.
+
+`global_library_retrieval.py` opens only the existing
+`data/knowledge/global/chroma_db` / `android_architecture_library` collection,
+embeds locally, and supplies up to three bounded excerpts to both agents.
+It never instantiates project/user RAG, selects a project, ingests PDFs, or
+reindexes. Retrieval failure stops before completion. Console output identifies
+book sources and chunk IDs. The previous blanket no-RAG statements below are
+historical: only shared book access has been added.
+
+13 focused tests passed; changed service/retrieval/test modules pass Ruff.
+Runner retains nine pre-existing Ruff findings. The first live structured-review
+run completed but Reviewer introduced the invalid `androidx.lifecycle.ViewModelScope`
+import; answer correctness is still not accepted. The second live run with books also completed, but retrieved unrelated
+reflection/DSL passages and produced lifecycleScope examples without the required
+receiver/imports. Semantic acceptance failed in both runs. Final `ollama ps`
+is empty. See `PHASE19_PREPARATION.md` for exact records. Do not retry
+blindly, equate retrieved chunks with relevant evidence, or claim Phase 19 closure.
+Preserve new profiles `phase19-qa-review-20261002`, `phase19-qa-books-20261002`
+and every prior profile. The original `user_123/state.json` hash is unchanged.
+
+## Previous repair — ordinary Runner questions — 2026-10-01
+
+The user supplied a real `python runner.py` transcript for
+`kotlin language show function`: code-mode Coder attempted file writes, then
+Shift-Left returned it to Coder for ten turns. The no-argument entry point
+unconditionally entered code mode, whose role prompt requires actual files.
+This establishes the wrong workflow for ordinary questions; it does not prove
+a Qwen-only regression or that historical cloud runs worked.
+
+The authorized repair introduces the default menu: general question without
+a project, explicitly selected project Q&A, or explicitly selected code task.
+General questions use `question_answering.py` for exactly Analyst then Reviewer,
+with no tools, project/RAG access, validator, or regulator. Native tool calls,
+tool-call JSON, empty responses and output-limit truncation fail visibly.
+Role models/routing remain configured in `roles.json`; no provider permissions
+were widened. State-save logs now contain status/step/tool counters; stdout is
+line-buffered, and router logs expose actual dispatches and safe failures.
+Code validation stops after two consecutive identical failures.
+
+Historical `user_123` and probe states must be preserved. Ordinary Q&A does not
+overwrite `state.json`; normal guardrail/Vault and telemetry operations still
+occur in the completion facade. The temporary RAG helper experiment was
+removed; no new RAG route or corpus change is part of this repair.
+
+Three actual Git Bash CLI runs completed naturally with exit code 0: two
+dispatcher-question runs (before/after review-prompt refinement) and the user's
+original `kotlin language show function` entered directly at the menu. All
+used two local Qwen agent turns, returned text and finished automatic unload.
+Final `ollama ps` was empty; the saved `user_123/state.json` hash was unchanged.
+The ordinary control-flow repair is evidenced. Reviewer still accepted missing
+coroutine receivers and mislabelled an ordinary function as inline; semantic
+answer correctness is NOT accepted. Full records are in
+`PHASE19_PREPARATION.md`. No unit-test suite was run; added regressions are
+unexecuted. Phase 19's live breaker acceptance remains separately unproven.
+
 ## Phase 13 handover — completed 2026-09-21
 
 Phase 13 is **deterministic context accounting**. The next open analysis item
@@ -1031,3 +1167,63 @@ other users' incomplete pairs still fail closed. Focused Vault/Guardrail tests
 passed 20 tests with one expected Windows symlink skip. The live
 `data/project_qa` files were not changed in this verification; metadata-only
 inspection found both canonical and legacy pairs already present.
+
+## Phase 19 handover — completed locally 2026-10-01
+
+`runner.py` now allows at most N tool calls per turn and blocks attempted call
+N+1 before dispatch. The saved `breaker_blocked` state contains a structured
+incident and is not resumable. The user-facing recovery actions are
+`python runner.py --reset USER` or starting a new task. No Analyst handoff or
+model-backed regulator action follows the stop. Earlier calls are not rolled
+back. `python -m unittest tests.sandbox.core.test_tool_circuit_breaker -v`
+passed 2 tests; 11 adjacent resume, documentation-transition, and
+session-lifecycle tests passed. The full suite was not run because focused and
+adjacent deterministic coverage directly exercises the changed contract. Two
+local-only live Runner attempts did not reach the breaker: after valid tool
+dispatch, Qwen returned a tool-call-shaped JSON string as ordinary content and
+Shift-Left validation stopped on `No supported source files found for
+validation`. Both disposable test states were preserved; no project source was
+changed. The Markdown-only validator also counts the disposable user's
+`vault.enc` and `vault.key` as artifacts; this adjacent behavior was not changed.
+Manual Ollama unload succeeded and `ollama ps` was empty. Live
+end-to-end acceptance remains unproven and needs separate diagnosis. No commit
+or push was made. See `PHASE19_PREPARATION.md`.
+
+## Active Phase 19 offline follow-up — 2026-10-01
+
+The user authorized a pinned, stepwise diagnosis and focused fixes. Step 1
+comparison is complete: historical Phase 7 state records five successful
+`create_file` executions and Ollama/Qwen telemetry, but aggregates 15 records
+over about an hour without per-run IDs or raw response shapes. Both failed
+Phase 19 attempts used only Ollama/Qwen; their saved executions show two failed
+`read_file` calls in one run and one successful `create_file` in the other,
+followed by tool-call-shaped JSON treated as ordinary assistant content.
+Neither reached the breaker. This does not establish regression or root cause.
+Source-path tracing is complete: `LiteLLMAdapter` and `ModelRouter` pass the
+completion response through; `safe_llm_completion` sanitizes content without
+normalizing tool calls; Runner dispatches only native `message.tool_calls` and
+treats content-only JSON as an answer. Historical state has no raw responses,
+so this explains the handling but not why Qwen returned that shape. Current
+one approved Runner CLI probe in `phase19-runner-probe-20261001` created the
+expected workspace artifact. All three telemetry records were local
+`ollama/qwen2.5:14b`; no cloud provider appears. The saved state nevertheless
+remains `in_progress` with zero tool-execution records and only user memory.
+The source only writes such a file via native tool dispatch, but the missing
+saved record and unexplained early stop mean end-to-end acceptance is not
+proven. Source confirmed the save boundary: tool records were volatile until
+turn completion, and caught exceptions were not persisted. The exact exception
+from that run was not logged and is unrecoverable. Runner now saves each tool
+execution immediately and records only safe exception category/type/stage
+metadata on early exit. A failure-injection test plus breaker,
+documentation-transition, and validation tests passed 15/15; Ruff passed for
+the new test module. The confirmed validator bug that counted
+`vault.enc`/`vault.key` as artifacts is fixed (7/7 focused tests). One offline
+system-library question created a 1,560-byte answer citing *Jetpack Compose
+Internals*, but code-mode Runner repeated `create_file` three times and was
+stopped at five minutes before Reviewer/completion. The three tool records
+persisted; retrieved global-library chunks are not persisted, so grounding is
+unverified. Ollama was stopped and `ollama ps` was empty. Current step:
+inspect/fix repeated-write turn behavior and retrieval provenance; preserve both
+probe profiles and do not make another model request without approval. Do not
+inspect Vault contents. Follow
+`PHASE19_PREPARATION.md` and `PHASE19_CONTINUATION_PROMPT.md`.

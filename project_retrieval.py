@@ -9,6 +9,21 @@ from project_registry import DATA_ROOT, ProjectRegistry
 from rag_service import SandboxRagService
 
 
+class AmbiguousProjectFile(ValueError):
+    """An explicit file reference identifies multiple snapshot paths."""
+
+
+def _file_references(query: str) -> list[str]:
+    return list(dict.fromkeys(
+        match.replace("\\", "/").casefold()
+        for match in re.findall(
+            r"(?<![\w/\\.-])(?:[\w.-]+[/\\])*[\w.-]+\."
+            r"(?:kt|kts|java|xml|json|gradle|properties|toml|yaml|yml|md|txt|py|js|ts|tsx|jsx|pro)\b",
+            query, flags=re.IGNORECASE,
+        )
+    ))
+
+
 def _snapshot_hits(registry: ProjectRegistry, project_id: str, query: str, limit: int) -> list[dict]:
     database = registry.state_dir(project_id) / "snapshot" / "project_snapshot.sqlite"
     if not database.is_file():
@@ -30,6 +45,28 @@ def _snapshot_hits(registry: ProjectRegistry, project_id: str, query: str, limit
     try:
         rows = []
         seen = set()
+        references = _file_references(query)
+        if references:
+            # Resolve explicit filenames before generic words can fill the quota.
+            # Match whole path components, not similarly named repositories/types.
+            for reference in references:
+                escaped = reference.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+                matched = connection.execute("""SELECT path, sha256, module, ''
+                    FROM files WHERE lower(path) = ? OR lower(path) LIKE ? ESCAPE '\\'
+                    ORDER BY path""", (reference, "%/" + escaped)).fetchall()
+                if len(matched) > 1:
+                    paths = ", ".join(row[0] for row in matched[:8])
+                    raise AmbiguousProjectFile(
+                        f"File reference '{reference}' matches multiple indexed paths: {paths}. "
+                        "Specify the project-relative path."
+                    )
+                for row in matched:
+                    if row[0] not in seen:
+                        rows.append(row)
+                        seen.add(row[0])
+            return [{"trust": "snapshot", "scope": "project-snapshot", "source": row[0],
+                     "sha256": row[1], "module": row[2], "text": f"Snapshot: {row[0]}",
+                     "explicit_file": True} for row in rows[:limit]]
         for term in terms:
             matched = connection.execute("""SELECT f.path, f.sha256, f.module, group_concat(DISTINCT s.name)
                 FROM files f LEFT JOIN symbols s ON s.file_path = f.path
@@ -190,6 +227,7 @@ def _source_hits(collection, snapshots: list[dict], limit: int) -> list[dict]:
         if text.strip():
             hits.append({"trust": "project code", "scope": "project-code",
                          "source": snapshot["source"], "sha256": snapshot["sha256"],
+                         "chunk_hashes": [metadata.get("sha256", "") for _, metadata in chunks],
                          "module": snapshot["module"], "text": text})
     return hits
 
@@ -205,6 +243,11 @@ def retrieve_project_context(project_id: str, query: str, *, top_k: int = 4,
     service = SandboxRagService("local-operator", SimpleNamespace(base_dir=DATA_ROOT),
                                 project_id=project_id, registry=registry)
     snapshots = _snapshot_hits(registry, project_id, query, top_k)
+    if _file_references(query):
+        # A named-file question needs that file's stored chunks, not unrelated
+        # vector neighbours. Missing chunks remain missing evidence; never read
+        # the checkout or fall back to a different source to manufacture an answer.
+        return snapshots + _source_hits(service.collection, snapshots, top_k)
     exact = _source_hits(service.collection, snapshots, top_k) if prefer_exact_sources else []
     literal = _literal_project_hits(service.collection, query, top_k)
     semantic = _chroma_hits(service.collection, query, "project-code", "project code", top_k)

@@ -2,6 +2,7 @@ import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from project_registry import ProjectRegistry
@@ -9,6 +10,8 @@ from project_retrieval import (
     _chroma_hits,
     _fuse_project_hits,
     _literal_project_hits,
+    _snapshot_hits,
+    AmbiguousProjectFile,
     format_retrieval_context,
     retrieve_global_technical_references,
     retrieve_project_context,
@@ -61,6 +64,54 @@ class FakeRagService:
 
 
 class ProjectRetrievalTests(unittest.TestCase):
+    def test_explicit_filename_survives_generic_words_and_semantic_noise(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "snapshot").mkdir()
+            db = sqlite3.connect(root / "snapshot/project_snapshot.sqlite")
+            db.executescript("CREATE TABLE files (path TEXT, sha256 TEXT, module TEXT); CREATE TABLE symbols (file_path TEXT, name TEXT);")
+            target = "core/domain/model/CheatCodes.kt"
+            distractors = [f"app/gamescheats/Other{index}.kt" for index in range(6)]
+            db.executemany("INSERT INTO files VALUES (?, ?, ':core')",
+                           [(path, "a" * 64) for path in distractors + [target]])
+            db.commit()
+            db.close()
+            registry = SimpleNamespace(state_dir=lambda _: root, get=lambda _: {})
+            query = "does project gta cheats app have file CheatCodes.kt? If yes answer, what in this file CheatCodes.kt ?"
+            records = [{"document": "data class CheatCodes(val groups: List<CheatCodeGroup>)",
+                        "metadata": {"source": target, "sha256": "a" * 64}}]
+            service = SimpleNamespace(collection=MultiChunkCollection(records))
+            with patch("project_retrieval.SandboxRagService", return_value=service), \
+                 patch("project_retrieval._chroma_hits") as semantic:
+                hits = retrieve_project_context("demo", query, registry=registry, prefer_exact_sources=True)
+            semantic.assert_not_called()
+            code = [hit for hit in hits if hit["scope"] == "project-code"]
+            self.assertEqual([hit["source"] for hit in code], [target])
+            self.assertIn("CheatCodeGroup", code[0]["text"])
+            self.assertEqual(code[0]["chunk_hashes"], ["a" * 64])
+
+    def test_ambiguous_basename_requires_path_and_missing_file_has_no_substitute(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "snapshot").mkdir()
+            db = sqlite3.connect(root / "snapshot/project_snapshot.sqlite")
+            db.executescript("CREATE TABLE files (path TEXT, sha256 TEXT, module TEXT); CREATE TABLE symbols (file_path TEXT, name TEXT);")
+            db.executemany("INSERT INTO files VALUES (?, ?, ':core')", [
+                ("one/Model.kt", "a" * 64), ("two/Model.kt", "b" * 64),
+                ("one/ModelRepository.kt", "c" * 64),
+            ])
+            db.commit()
+            db.close()
+            registry = SimpleNamespace(state_dir=lambda _: root, get=lambda _: {})
+            with self.assertRaisesRegex(AmbiguousProjectFile, "Specify the project-relative path"):
+                _snapshot_hits(registry, "demo", "Explain Model.kt", 4)
+            exact = _snapshot_hits(registry, "demo", "Explain one/Model.kt", 4)
+            self.assertEqual([hit["source"] for hit in exact], ["one/Model.kt"])
+            with patch("project_retrieval.SandboxRagService"), \
+                 patch("project_retrieval._chroma_hits") as semantic:
+                self.assertEqual(retrieve_project_context("demo", "Explain Missing.kt", registry=registry), [])
+            semantic.assert_not_called()
+
     def test_context_is_ordered_and_carries_trust_source_and_module(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

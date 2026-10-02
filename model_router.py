@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 import os
+import logging
 import time
 from typing import Any, Callable, Mapping, Protocol, Sequence
 
@@ -322,6 +323,11 @@ class ModelRouter:
 
     def complete(self, request: ModelRequest) -> ModelResult:
         models = self._models(request)
+        logger = logging.getLogger("ModelRouter")
+        if self.offline_mode:
+            logger.info("[Routing] OFFLINE: only Ollama routes are eligible.")
+        if not models:
+            logger.warning("[Routing] No model is eligible under the current policy, budget, quota and health limits.")
         failures: list[tuple[str, str]] = []
         attempted = 0
         for model in models:
@@ -329,12 +335,14 @@ class ModelRouter:
             retries = request.max_retries
             while True:
                 attempted += 1
+                logger.info("[Model] task=%s provider=%s model=%s attempt=%s", request.task_class.value, provider, model, attempted)
                 try:
                     response = self.adapter.complete(model, request.messages, **dict(request.extra_kwargs))
                     remaining = self._quota_remaining(provider)
                     if remaining is not None:
                         _, expires = self._quota[provider]
                         self._quota[provider] = (max(0, remaining - 1), expires)
+                    logger.info("[Model] Completed: %s", model)
                     return ModelResult(
                         response=response,
                         selected_model=model,
@@ -344,6 +352,8 @@ class ModelRouter:
                     )
                 except Exception as error:
                     error_type = type(error).__name__
+                    rate_limited = getattr(error, "status_code", None) == 429 or "ratelimit" in error_type.lower()
+                    logger.warning("[Model] %s failed: %s%s", model, error_type, " (provider rate limit reached)" if rate_limited else "")
                     failures.append((model, error_type))
                     if self._is_transient(error):
                         self._unhealthy_until[provider] = self.clock() + self.health_ttl_seconds

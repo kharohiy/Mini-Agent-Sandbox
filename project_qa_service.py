@@ -10,7 +10,9 @@ from typing import Callable
 
 from model_router import TaskClass
 from project_registry import ProjectRegistry
-from project_retrieval import retrieve_global_technical_references, retrieve_project_context
+from project_retrieval import (
+    AmbiguousProjectFile, retrieve_global_technical_references, retrieve_project_context,
+)
 
 
 class ProjectQaError(RuntimeError):
@@ -52,6 +54,8 @@ class ProjectQaService:
                 top_k=4,
                 prefer_exact_sources=True,
             )
+        except AmbiguousProjectFile as error:
+            raise ProjectQaError(str(error)) from None
         except Exception:
             raise ProjectQaError("Project RAG retrieval failed; no answer was produced.") from None
 
