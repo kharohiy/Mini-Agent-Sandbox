@@ -55,7 +55,8 @@ class QuestionAnswerService:
         )
         self.progress(f"[RAG] Shared book library: {len(references)} excerpts; no project RAG.")
         for reference in references:
-            self.progress(f"[RAG] {reference['source']} | chunk={reference['chunk_id']}")
+            chunk_ids = reference.get("chunk_ids", [reference["chunk_id"]])
+            self.progress(f"[RAG] {reference['source']} | chunks={','.join(chunk_ids)}")
         analyst = self._answer(
             "analyst", settings["analyst"], user_id,
             [

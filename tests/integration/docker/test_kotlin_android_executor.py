@@ -11,7 +11,7 @@ from sandbox_executor import DockerSandboxExecutor, ExecutionRequest
 
 
 DOCKER = os.environ.get("DOCKER_BIN") or shutil.which("docker")
-FIXTURE = Path(__file__).parent / "tests" / "fixtures" / "kotlin-android"
+FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "kotlin-android"
 
 
 def docker_available():

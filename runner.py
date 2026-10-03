@@ -22,6 +22,7 @@ from work_ledger import WorkLedger
 from patch_policy import validate_unified_diff
 from data_guardrail import guardrail
 from telemetry_aggregator import aggregate_telemetry
+from regulator_policy import evaluate_regulator_response, regulator_prompt
 from vault_registry import get_user_vault
 from fact_policy import FactPolicy
 from secret_capabilities import resolve_capability_arguments
@@ -907,6 +908,8 @@ def run_project_qa_cli():
     try:
         result = run_project_qa_interactive()
         if result is not None:
+            print("\nAnalyst answer:")
+            print(result["analyst"])
             print("\nAnswer:")
             print(result["reviewer"])
             print(f"\nIndexed snapshot revision: {result['snapshot_revision'][:12]}")
@@ -1029,24 +1032,25 @@ def validate_generated_code(file_path: str) -> tuple[bool, str]:
     return _validate_documentation_workspace(workspace)
 
 def trigger_regulator(user_id):
-    print("\n[Regulator] 👁️ Waking up to analyze telemetry (every 10 sessions)...")
+    print("\n[Regulator] 👁️ Waking up to analyze telemetry (every 10 records)...")
     try:
         report = aggregate_telemetry(user_id)
-        if not report or report.get("total_requests", 0) % 10 != 0:
+        if not report or report.get("total_records", 0) % 10 != 0:
             print("[Regulator] 💤 Condition not met or no data. Sleeping.")
             return
 
-        regulator_prompt = (
-            "You are a System Regulator. Your task is to analyze compressed telemetry metrics (Incident Summary) "
-            "and propose improvements for roles or rules. You are forbidden to use external tools. "
-            f"Current metrics: {json.dumps(report, ensure_ascii=False)}\n"
-            "Identify system weaknesses based on errors or triggers."
-        )
-        messages = [{"role": "system", "content": regulator_prompt}]
+        if not report.get("evidence"):
+            print("[Regulator] No actionable evidence. Sleeping.")
+            return
+        messages = [{"role": "system", "content": regulator_prompt(report)}]
         print("[Regulator] Analyzing metrics...")
         response = safe_llm_completion("ollama/qwen2.5:14b", messages, tools=None, user_id="system_regulator", task_class=TaskClass.PLANNING)
         content = response.choices[0].message.content if hasattr(response, 'choices') else ""
-        print(f"[Regulator] 💡 Evolution proposal:\n{content}")
+        decision = evaluate_regulator_response(content, report)
+        print("[Regulator] Advisory proposal admission:\n" + json.dumps(
+            decision, ensure_ascii=False, sort_keys=True
+        ))
+        return decision
     except Exception as e:
         print(f"[Regulator] ⚠️ Execution Error: {e}")
 

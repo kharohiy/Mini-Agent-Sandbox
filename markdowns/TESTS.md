@@ -1,3 +1,83 @@
+## Direct-callee evidence live experiment — 2026-10-03
+
+The project evidence was temporarily ordered as target method, direct local
+callees, and remaining file context. The exact implementations and explicit
+labels reached both agents. Both answers still omitted the callee internals at
+305/2048 tokens. Because the experiment did not improve the acceptance result,
+its retrieval implementation and test were reverted after the run.
+
+## Project Reviewer checklist live result — 2026-10-03
+
+The identical GTA question was repeated after a Reviewer-only completeness and
+evidence-tracing checklist. The final answer removed "immediately" and omitted
+the prior Analyst-evaluation preamble, but still stopped at the name
+`loadFavoriteCodes()` instead of tracing its retrieved implementation. Criteria:
+add/remove PASS; load method named PASS; favorite use case FAIL; mapper FAIL;
+StateFlow assignment FAIL; unsupported timing removed PASS. Calls stopped at
+242/2048 and 241/2048. This is a partial prompt improvement, not acceptance.
+
+## GTA project-Q&A chain observation — 2026-10-03
+
+A real menu-2 Runner query selected GTA and asked how `toggleFavorite` updates
+favorites in `GtaSaViewModel.kt`. Retrieval supplied the complete indexed file.
+Analyst and Reviewer correctly described the add/remove branch but both omitted
+the retrieved load/map/StateFlow assignment details and claimed the UI updates
+"immediately". Both calls stopped normally at 284 and 200 output tokens against
+a 2048 limit. The project answer is therefore a negative quality observation,
+not a passing acceptance. Two focused CLI-observability tests passed.
+
+## Shared-book continuation acceptance — 2026-10-03
+
+The focused retrieval/Q&A set passed 15 tests and the complete `tests/project_rag`
+suite passed 59 tests. Focused Ruff passed. A real Runner no-project question
+first demonstrated that the selected start chunk omitted the exact application
+timing. After the bounded continuation fix, the same question retrieved
+`5dbcea86...` with `b8d4b3ee...`; both agents correctly stated that recorded
+changes are applied after Composition completes. Both model calls completed;
+this was not a project-Q&A or code-compilation acceptance.
+
+## Phases 20–22 security acceptance — 2026-10-02
+
+`python evals_pipeline.py` passed 10/10 behavioral cases without a model. The
+cases assert filesystem, state, fact, network, tool and Vault effects. The real
+Docker outbound-socket test passed. Focused Regulator/manifest tests passed 7/7.
+After correcting two Docker test fixture paths, full discovery passed 261 tests
+with 8 expected skips. Focused Ruff passed for all new/changed Phase 20–22 files;
+Runner still has its nine pre-existing findings.
+
+Model-output adversarial prompts are quality probes only and are excluded from
+the behavioral security result. Regulator proposals are evidence-bound,
+advisory and never auto-applied. See `SECURITY_BOUNDARY_MATRIX.md` and the three
+phase preparation records. Older prose-eval/self-learning sections below are
+historical and superseded.
+
+## Phase 19 closure verification - 2026-10-02
+
+29 focused tests passed in test_model_router, test_tool_circuit_breaker,
+test_runner_tool_persistence and test_session_lifecycle. Ruff passed for
+model_router.py and its test module. No full suite was run. Native transport
+tests preserve schemas, tool-result history and response identity, and leave
+tool-free requests on the prior route. Existing breaker tests cover both modes,
+no subsequent agent/regulator, non-resumable state and session-only reset.
+
+One actual Runner menu-3 run (61.25 seconds) processed five list_directory calls
+and blocked number six in the same Coder turn. The incident and five records
+persisted; actual CLI resume failed with exit 1 without changing the state.
+The breaker run itself exited 0, a known CLI limitation, not task success.
+All 19 historical states remained unchanged; models unloaded. Raw evidence:
+data/offline-acceptance-20261002/breaker-native. Phase 19 is closed locally;
+there was no live documentation-mode run or reset of the acceptance evidence.
+
+## Output truncation regression and live check - 2026-10-02
+
+19 tests in tests.project_rag.test_project_qa passed, including length termination
+at either agent, no retry, and both agents receiving the 2048 output budget.
+Ruff passed for project_qa_service.py and its test module. This is not a full
+suite. The real Navigation.kt menu run completed in 104.09 seconds with exit 0,
+both finish reasons stop, 507 output tokens each, a closed code block and the
+requested explanation. Two prior connection failures remain recorded. See
+OFFLINE_ACCEPTANCE_20261002.md; Phase 19 breaker acceptance remains open.
+
 ## Latest named-file verification checkpoint - 2026-10-02
 
 The project retrieval/Q&A modules passed 25 focused tests, followed by one added
@@ -56,8 +136,9 @@ The new
 regressions have not been run in this repair session, per the user's focus on
 actual Runner verification. No passing unit total is claimed here.
 
-The actual Git Bash Runner acceptance records are in
-`PHASE19_PREPARATION.md`. Three new runs completed with answers and exit code 0;
+The actual Git Bash Runner acceptance records are consolidated in
+`CODEX_HANDOVER.md` and `OFFLINE_ACCEPTANCE_20261002.md`. Three new runs
+completed with answers and exit code 0;
 Reviewer still accepted incorrect examples/terminology, so answer correctness
 was not accepted. Ruff passed on
 the new service, router and regression module; `runner.py` retains nine existing

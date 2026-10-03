@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import re
 import sqlite3
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -13,6 +14,8 @@ from project_registry import ProjectRegistry
 from project_retrieval import (
     AmbiguousProjectFile, retrieve_global_technical_references, retrieve_project_context,
 )
+
+PROJECT_QA_MAX_OUTPUT_TOKENS = 2048
 
 
 class ProjectQaError(RuntimeError):
@@ -115,7 +118,11 @@ class ProjectQaService:
                         "You are a read-only project Reviewer. Correct the Analyst answer using only supplied RAG evidence. "
                         "A technical reference may explain a concept but cannot support a project fact. Return a concise "
                         "factual answer; do not propose code, tools, source changes, or tests. If the supplied evidence "
-                        "does not answer the question, explicitly abstain."
+                        "does not answer the question, explicitly abstain. Before returning the final answer: split the "
+                        "original question into its requested parts and cover every part; trace relevant method calls and "
+                        "state changes present in the evidence instead of stopping at a called method's name; remove timing, "
+                        "ordering, or guarantee claims not explicitly supported by the evidence. Return the corrected "
+                        "complete answer directly, without evaluating or praising the Analyst."
                     ),
                 },
                 {
@@ -251,12 +258,26 @@ class ProjectQaService:
                 fallback_models=settings["fallback_models"],
                 fallback_eligible=settings["fallback_eligible"],
                 task_class=task_class,
-                max_tokens=200,
+                max_tokens=PROJECT_QA_MAX_OUTPUT_TOKENS,
                 temperature=0,
             )
-            answer = response.choices[0].message.content
+            choice = response.choices[0]
+            answer = choice.message.content
         except Exception:
             raise ProjectQaError(f"Project Q&A {role_name} model route failed or returned an invalid response.") from None
+        finish_reason = getattr(choice, "finish_reason", None)
+        logging.getLogger(__name__).info(
+            "[Project QA] agent=%s finish_reason=%s completion_tokens=%s output_limit=%s",
+            role_name, finish_reason,
+            getattr(getattr(response, "usage", None), "completion_tokens", None),
+            PROJECT_QA_MAX_OUTPUT_TOKENS,
+        )
+        if finish_reason == "length":
+            raise ProjectQaError(
+                f"Project Q&A {role_name} response reached the output limit "
+                f"({PROJECT_QA_MAX_OUTPUT_TOKENS} tokens); the answer is incomplete. "
+                "Ask for a smaller section or separate the file and explanation requests."
+            )
         if not isinstance(answer, str) or not answer.strip():
             raise ProjectQaError(f"Project Q&A {role_name} returned no answer.")
         return answer

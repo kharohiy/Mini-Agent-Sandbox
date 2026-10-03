@@ -14,7 +14,7 @@ from sandbox_executor import DockerSandboxExecutor
 from validation_worker import ValidationRejected, ValidationWorker
 from work_ledger import WorkLedger
 
-FIXTURE = Path(__file__).parent / "tests" / "fixtures" / "kotlin-android"
+FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "kotlin-android"
 DOCKER = os.environ.get("DOCKER_BIN") or shutil.which("docker")
 
 

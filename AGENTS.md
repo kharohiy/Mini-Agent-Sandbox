@@ -16,15 +16,14 @@ non-trivial change, read it in this order:
 3. `markdowns/NEXT_STEPS_PLAN.md` — active priority.
 4. `markdowns/PROJECT_EVOLUTION_ROADMAP.md` — approved milestones.
 5. `markdowns/TESTS.md` — security-test scenarios.
-6. The active Phase 19 follow-up repairs ordinary Runner question answering.
-   Read `PHASE19_CONTINUATION_PROMPT.md` and the latest acceptance record in
-   `PHASE19_PREPARATION.md`. The user authorized the CLI repair and a real
-   Runner run with the supplied question. General questions have no project;
-   project Q&A requires explicit selection. Preserve the user's `user_123`
-   failed run and all earlier probe profiles. Do not equate deterministic
-   results with a successful model answer or closure of the live breaker test.
-7. `markdowns/mini_agent_sandbox_analysis.md` when architectural context is
-   needed.
+6. Phases 19–22 are closed locally as of the 2026-10-02 acceptance records.
+   Their consolidated status and evidence are in `CODEX_HANDOVER.md`,
+   `OFFLINE_ACCEPTANCE_20261002.md`, `TESTS.md`, and
+   `SECURITY_BOUNDARY_MATRIX.md`. Security evals require behavioral side
+   effects; model prose is quality evidence only. Regulator is advisory and
+   cannot auto-apply changes. Preserve the user's `user_123` failed run and all
+   earlier acceptance profiles. General questions have no project; project Q&A
+   requires explicit selection.
 
 The root-level Markdown copies are legacy copies. Do not update, move, or use
 them as authoritative status unless the user explicitly asks. Follow the

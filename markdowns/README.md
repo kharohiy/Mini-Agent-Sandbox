@@ -1,4 +1,52 @@
+## Project-Q&A chain visibility — 2026-10-03
+
+The project-selected CLI prints both the Analyst draft and Reviewer final answer.
+A live `GtaSaViewModel.kt` check confirmed exact-file retrieval but exposed an
+open quality defect: both agents omitted the retrieved implementation details of
+`loadFavoriteCodes()` and used an unsupported "immediately" description. This
+run does not accept Reviewer correctness or complete project-Q&A behavior.
+
+## Shared book chunk continuations — 2026-10-03
+
+General no-project Q&A keeps the three-reference limit, but a selected book chunk
+may now include one immediate continuation from the same PDF and the same header
+section. Runner prints every included chunk ID. This prevents an explanation
+split at a chunk boundary from losing its conclusion without mixing books or
+project evidence. A real Compose slot-table/change-list question verified the
+before/after behavior through Analyst and Reviewer. GTA project RAG remains
+separate and was not used by this check.
+
+## Phases 20–22 security boundary status — 2026-10-02
+
+Phases 20–22 are closed locally. `evals_pipeline.py` now runs the deterministic
+cases in `tests/security_behavioral_manifest.json`: filesystem, state, facts,
+network, tool dispatch and Vault effects. It passed 10/10 without a model. A
+real Docker test also confirmed an outbound socket cannot connect; full test
+discovery passed 261 tests with 8 expected skips.
+
+`tests/adversarial_prompts.json` is a model-quality corpus and does not create a
+security score. Telemetry supplies bounded payload-free evidence IDs. Regulator
+output requires proposal, confidence, cited evidence and affected rule, then a
+deterministic gate may admit it only for human review. The Regulator has no tools
+and always has `auto_apply=false`; it never rewrites roles, facts, capabilities
+or policy. See `SECURITY_BOUNDARY_MATRIX.md` and Phase 20–22 preparation records.
+
+The older Release 1.0 claims about a prose-derived 100% Security Score,
+automatic self-evolution and Regulator fact/policy rewrites are superseded.
+
 ## Runner entry point — ordinary questions and explicit project selection
+
+Phase 19 is closed locally (2026-10-02): a real offline Runner run processed
+five tool calls and blocked the sixth, persisted breaker_blocked and its
+incident, and rejected resume. The acceptance record is consolidated in
+`CODEX_HANDOVER.md` and `OFFLINE_ACCEPTANCE_20261002.md`;
+earlier inconclusive checkpoints below are historical. Blocked code tasks
+still exit the CLI with 0; use the recorded task status, not exit code alone.
+
+Local requests with tools use LiteLLM's native ollama_chat transport to Ollama
+/api/chat. Configured ollama/model identifiers, local-only routing and tool
+authorization are unchanged. Requests without tools retain their previous
+completion transport. Assistant text is not converted into executable calls.
 
 Run `python runner.py` to open the menu. Option **1** asks a general question
 without selecting a project. Enter the question after selecting 1, or type it
@@ -30,14 +78,15 @@ passages remain candidates, not proof of correctness.
 See `OFFLINE_ACCEPTANCE_20261002.md` for actual runtime results and unresolved
 boundaries. Answer quality is distinct from orchestration acceptance.
 
-Known project-Q&A limitation (2026-10-02): each agent has a 200-output-token
-budget and this path does not yet check finish_reason for truncation. A user-run
-Navigation.kt request found the correct source but ended mid-code and omitted
-its explanation. Investigation is pending; this is not resolved by the filename
-retrieval fix. Project Q&A defaults to selected-project evidence only
+Project-Q&A output repair (2026-10-02): the former 200-output-token budget is now
+2048 per agent. A provider finish_reason of length stops the request with an
+explicit incomplete-answer message, without an automatic retry or passing a
+truncated Analyst draft to Reviewer. Completion reason and token count are
+logged per agent. This is output-boundary handling, not a correctness check.
+Project Q&A defaults to selected-project evidence only
 (`include_technical_reference=False`); optional technical-book references are
-not enabled by menu selection. General-QA truncation handling described above
-does not imply equivalent handling in project Q&A.
+not enabled by menu selection. Larger files can still exceed the bounded output
+budget; separate the requested section and explanation if that happens.
 
 Option **2** opens the registered-project catalog; a project is attached only
 after the user selects it there. Option **3** explicitly starts a code task.
@@ -69,21 +118,21 @@ from the per-turn tool-call limit; it does not grant validation or approval.
 
 Phase 18 removed the unreachable mocked confirmation branch for unsupported
 external tools and preserved exact-hash user approval for reviewed project
-patches. See `PHASE18_PREPARATION.md` for its verification record.
+patches. Its verification record is consolidated in `CODEX_HANDOVER.md`.
 
 Phase 19 makes the per-turn tool-call limit a hard stop: calls 1..N may be
 processed and call N+1 is blocked before dispatch. The incident is persisted
 with `status="breaker_blocked"`; the task cannot resume. Run
 `python runner.py --reset USER` to clear only session state, or start a new
-task. Calls processed before the block are not rolled back. See
-`PHASE19_PREPARATION.md` for deterministic verification. Live Runner acceptance
+task. Calls processed before the block are not rolled back. Deterministic
+verification is recorded in `CODEX_HANDOVER.md`. Live Runner acceptance
 is not yet established. Follow-up hardens dispatch durability: each tool result
 is saved before continuing the turn, and early errors persist redacted
 category/type/stage metadata. A failure-injection regression and adjacent
 tests pass 15/15. The preserved live probe remains incomplete and is not claimed
 as acceptance. A system-library concept probe produced an answer artifact but
 repeated Markdown writes until the five-minute cap; retrieval provenance is not
-persisted. See `PHASE19_PREPARATION.md`.
+persisted. The exact probe record is consolidated in `CODEX_HANDOVER.md`.
 
 The approved standalone Project Catalog and Project-Bound Q&A task is
 implemented locally; it does not designate a new numbered phase. The
@@ -119,37 +168,37 @@ code-task loop or project-patch workflow.
 
 The Phase 7 material below is retained as historical operational context.
 
-## Исторический статус — выполнение ограниченного контура 2026-09-16
+## Historical status — bounded execution on 2026-09-16
 
-- `phase7_quality_final` остаётся неизменяемым историческим неуспешным run
-  (`in_progress`, фактические `agent_steps: 11`), без reset/edit/resume.
-- Один автоматический preflight успешно поднял Docker Desktop и подтвердил
-  Docker, native Ollama, `qwen2.5:14b`, `nomic-embed-text:latest` и FastAPI.
-- Новая ограниченная `phase7_dispatch_guard` завершена после одного точечного
-  dispatch fix и одного test (**1/1 passed**): невалидный documentation write
-  отклоняется до записи без расхода отдельного шага.
-- Один opt-in Ollama/Chroma run: **1/1 passed**. Один real offline
-  documentation resume: **completed**, `agent_steps: 2`, Reviewer `APPROVE`.
-- Финальный полный suite: **126 tests, OK (skipped=3), exit code 0**; после
-  прогона нет загруженных Ollama-моделей или Docker-контейнеров.
+- `phase7_quality_final` remained an immutable historical failed run
+  (`in_progress`, actual `agent_steps: 11`) with no reset, edit, or resume.
+- One automated preflight successfully started Docker Desktop and confirmed
+  Docker, native Ollama, `qwen2.5:14b`, `nomic-embed-text:latest`, and FastAPI.
+- The bounded `phase7_dispatch_guard` task completed after one focused
+  dispatch fix and one passing test (**1/1**): an invalid documentation write
+  is rejected before persistence without consuming a separate step.
+- One opt-in Ollama/Chroma run passed **1/1**. One real offline documentation
+  resume completed with `agent_steps: 2` and Reviewer verdict `APPROVE`.
+- The final full suite reported **126 tests, OK (skipped=3), exit code 0**;
+  no Ollama models or Docker containers remained loaded after the run.
 
-**Phase 7 закрыта 2026-09-16. Исторический `phase7_quality_final` сохранён
-без изменений как неуспешный run.**
+**Phase 7 was closed on 2026-09-16. The historical `phase7_quality_final`
+failed run was preserved unchanged.**
 
-### Операционный контур Phase 7
+### Phase 7 operational workflow
 
-`phase7_operational_preflight.ps1` — единственный preflight-контур. Если
-`docker info` недоступен, он сам находит Docker Desktop по установленному
-Docker CLI, запускает Desktop скрыто и ждёт готовности daemon. Затем он
-проверяет native Ollama endpoint и наличие `qwen2.5:14b` / `nomic-embed-text:latest`,
-кратко поднимает FastAPI только на loopback и останавливает этот процесс.
-Скрипт не загружает модели, не меняет Docker executor и не создаёт model storage.
-Runner запускается отдельно как контролируемый процесс без внешнего короткого
-timeout.
+`phase7_operational_preflight.ps1` is the single preflight workflow. If
+`docker info` is unavailable, it locates Docker Desktop through the installed
+Docker CLI, starts it hidden, and waits for the daemon. It then checks the
+native Ollama endpoint and the presence of `qwen2.5:14b` and
+`nomic-embed-text:latest`, briefly starts FastAPI on loopback only, and stops
+that process. The script does not load models, change the Docker executor, or
+create model storage. Runner is started separately as a controlled process
+without a short external timeout.
 
-### Актуальная карта проекта
+### Current project map
 
-| Область | Основные компоненты |
+| Area | Main components |
 |---|---|
 | Orchestration | `runner.py`, `roles.json`, `model_router.py` |
 | Documentation workflow | `documentation_policy.py`, `project_retrieval.py`, `test_documentation_*.py` |
@@ -157,83 +206,84 @@ timeout.
 | API and policy | `api.py`, `capability_policy.py`, `work_ledger.py` |
 | Isolated validation | `validation_worker.py`, `sandbox_executor.py`, `Dockerfile.executor` |
 
-Архитектурный backlog и P0/P1-границы описаны в
-[`mini_agent_sandbox_analysis.md`](../mini_agent_sandbox_analysis.md). Этот файл
-является исходной точкой для следующих доработок; Phase 7 не отменяет его
-приоритеты по isolation, policy, vault, validation и state machine.
+The architectural priorities carried forward from this period are isolation,
+deterministic policy, vault separation, real validation, and a correct state
+machine. Their current implementation and remaining boundaries are described
+in the canonical documents in this directory.
 
 ---
 
-## Исторические статусы и справочные материалы
+## Historical status and reference material
 
-## Актуальный статус на конец сессии 2026-09-15
+## Status at the end of the 2026-09-15 session
 
-### Результат единственного resume — 2026-09-16
+### Result of the single resume — 2026-09-16
 
-- Локальный Ollama endpoint восстановлен; opt-in Ollama/Chroma integration
-  прошёл **1/1**.
-- Единственный offline resume `phase7_quality_final` остановлен до
-  evidence/reviewer проверки: Coder записал `# Overview` вместо обязательного
-  `## Overview`. State: `in_progress`, `agent_steps=7`, без review verdict.
-- Второй resume и prompt-подгонка не выполнялись. Phase 7 не закрыта.
+- The local Ollama endpoint was restored and the opt-in Ollama/Chroma
+  integration passed **1/1**.
+- The single offline resume of `phase7_quality_final` stopped before evidence
+  and Reviewer checks because Coder wrote `# Overview` instead of the required
+  `## Overview`. State remained `in_progress`, with `agent_steps=7` and no
+  review verdict.
+- No second resume or prompt tuning was performed. Phase 7 was still open at
+  this checkpoint.
 
-### Обновление выполнения закреплённого плана — 2026-09-16
+### Pinned-plan execution update — 2026-09-16
 
-- Phase 7 получила минимальный детерминированный evidence gate: каждый
-  retrieval-запрос с прямым совпадением требует один соответствующий реальный
-  RAG source path. Сложная схема сопоставления цитат с фрагментами кода не
-  возвращалась.
-- Новый regression test и целевой набор прошли **52/52**. Полный suite:
-  **126 run, 111 passed, 15 skipped**; Docker-тесты ожидаемо пропущены,
-  потому что Docker Desktop не был запущен оператором.
-- Opt-in Ollama/Chroma integration не дошёл до agent loop: embedding через
-  `ollama/nomic-embed-text` завершился `APIConnectionError`. `ollama ps` затем
-  завершился по тайм-ауту: Ollama не смог создать log в
-  `%LOCALAPPDATA%\\Ollama` из-за `Access is denied`.
-- `phase7_quality_final` не возобновлялась, сохранила `in_progress` и
-  `agent_steps=6`. До внешнего восстановления Ollama service не запускать
-  модели, не менять prompts/RAG и не сбрасывать задачу.
+- Phase 7 gained a minimal deterministic evidence gate: each retrieval request
+  with a direct match required one corresponding real RAG source path. The
+  complex citation-to-code matching design was not restored.
+- The new regression test and focused suite passed **52/52**. The full suite
+  ran **126 tests: 111 passed and 15 skipped**; Docker tests were skipped
+  because Docker Desktop had not been started by the operator.
+- The opt-in Ollama/Chroma integration did not reach the agent loop. Embedding
+  through `ollama/nomic-embed-text` returned `APIConnectionError`, and
+  `ollama ps` timed out because Ollama could not create a log under
+  `%LOCALAPPDATA%\\Ollama` (`Access is denied`).
+- `phase7_quality_final` was not resumed and retained state `in_progress` with
+  `agent_steps=6`. Until Ollama was restored externally, models, prompts, RAG,
+  and task state were not to be changed.
 
-**Phase 7 не завершена. Работа и генерации остановлены по просьбе пользователя.**
-Этот блок актуальнее всех прежних статусов и prompt ниже в документе.
+**At this historical checkpoint Phase 7 was not complete. Work and generation
+were stopped at the user's request.** This record superseded the older status
+and continuation prompt below it at that time.
 
-- Сохранены проверки документационного артефакта в `documentation_policy.py`,
-  изменения `runner.py` и точный поиск существующих Chroma-фрагментов в
-  `project_retrieval.py`. Есть регрессионные тесты.
-- Финальная версия упрощена: нужный Markdown, отсутствие лишних файлов,
-  обязательные разделы и реальные пути из RAG; Reviewer возвращает
-  `decision` и содержательный `reason`. Сложная схема сопоставления цитат
-  документа с цитатами кода удалена. Ссылка в каждом разделе не обязательна.
-  Наличие ссылок не является доказательством истинности всех утверждений.
-- После упрощения целевые тесты: **51/51 прошли**. Последний полный прогон:
-  **125 запущено, 122 прошли, 3 пропущены**, но он был ДО последнего упрощения.
-  Полный прогон финального упрощённого кода и повтор opt-in Ollama/Chroma
-  в этой части работы не выполнены. Старый результат opt-in 1/1 исторический.
-- Успешный реальный offline-проход финальной упрощённой версии НЕ подтверждён.
-  Модель `qwen2.5:14b` теряла ссылки; одна версия Reviewer ошибочно цитировала
-  сам документ как доказательство. Ошибочные результаты не закрыли новые задачи.
-- `phase7_offline_test`: `completed`, шаг 6, старый результат с известным
-  дефектом качества; сохранить. `phase7_quality_test`: `in_progress`, шаг 11,
-  лимит исчерпан; не сбрасывать. `phase7_quality_final`: `in_progress`, шаг 6,
-  прерван; это последняя задача, которую можно рассмотреть для продолжения.
-- Все три задачи связаны с `gta-cheats--cc0fe5de`. `user_123`, исходники
-  Android, legacy vault, зависимости и Docker-конфигурация не изменялись.
-  Коммитов не было. Смена на `qwen3.5:9b` только обсуждалась: НЕ выполнена;
-  `roles.json` не менялся.
-- После остановки отдельно выгружены `qwen2.5:14b` и `nomic-embed-text`.
-  Повторная проверка: `ollama ps` пуст, Python и Ollama runner процессов нет;
-  остались приложение Ollama и фоновый сервер. Показатель GPU не измерен:
-  `nvidia-smi` отсутствует в PATH. Не запускать модели ради проверки статуса.
+- Documentation artifact checks in `documentation_policy.py`, the `runner.py`
+  changes, and exact retrieval of existing Chroma fragments in
+  `project_retrieval.py` were preserved with regression tests.
+- The final design was simplified to require the intended Markdown file, no
+  unexpected files, required sections, and real RAG paths. Reviewer returned a
+  structured `decision` and meaningful `reason`. Complex citation-to-code
+  matching was removed. A link was not required in every section, and links
+  were not treated as proof that every claim was true.
+- Focused tests passed **51/51** after simplification. The latest full run at
+  that checkpoint ran **125 tests: 122 passed and 3 skipped**, but it preceded
+  the final simplification. The final simplified code had not yet received a
+  full run or repeat opt-in integration.
+- A successful real offline run of the simplified version had not been shown.
+  `qwen2.5:14b` lost citations, and one Reviewer response cited the document
+  itself as evidence. These failures did not close any new task.
+- `phase7_offline_test` was `completed` at step 6 with a known quality defect;
+  `phase7_quality_test` was `in_progress` at step 11 with its limit exhausted;
+  and `phase7_quality_final` was interrupted at step 6 and preserved.
+- All three tasks were bound to `gta-cheats--cc0fe5de`. `user_123`, Android
+  sources, the legacy vault, dependencies, and Docker configuration were not
+  changed. No commit was made. A switch to `qwen3.5:9b` was discussed only;
+  it was not performed and `roles.json` was unchanged.
+- After stopping, `qwen2.5:14b` and `nomic-embed-text` were unloaded. A repeat
+  check showed an empty `ollama ps` and no Python or Ollama runner processes;
+  only the Ollama application and background server remained. GPU use was not
+  measured because `nvidia-smi` was not on `PATH`. Models were not to be run
+  merely to check status.
 
-**Продолжение завтра:** сначала прочитать новый верхний блок `CODEX_HANDOVER.md`.
-Не повторять длительные циклы подбора промптов, не менять модели автоматически,
-не возвращать сложное «доказательство» качества текста. Проверить сохранённые
-изменения, затем один ограниченный реальный проход; если он не проходит,
-зафиксировать конкретный дефект и остановиться, не подгонять тест до успеха.
+The continuation instruction at that checkpoint was to read the newest status
+at the top of `CODEX_HANDOVER.md`, avoid repeated prompt-tuning loops or model
+changes, inspect saved work, run one bounded real attempt, and record any
+failure without tuning the test to pass.
 
 ---
 
-## Исторические материалы
+## Historical material
 
   🚀 Architecture and Design of the "Mini Agent Sandbox" Project
   The Mini Agent Sandbox project is a custom, locally deployable sandbox operating on the principles of an LLM-OS (LLM-based Operating System). It is designed
@@ -301,16 +351,16 @@ The project's architecture is built around a 4-stage data processing pipeline th
   ## 🧪 Testing and Monitoring (LLMOps)
   The project includes built-in mechanisms for evaluating agent quality and monitoring costs:
 
-  1. Hardened Evals Pipeline (CI/CD Security Check)
+  1. Historical Hardened Evals Pipeline (superseded)
   The `evals_pipeline.py` script uses a dataset of attack vectors (`tests/adversarial_prompts.json`).
   👉 **A detailed description of all attacks, testing scenarios (including Tool Abuse, Memory Poisoning, and Shift-Left Validation), and behavior rules are described in a special guideline: [TESTS.md](TESTS.md).**
 
-  • The pipeline simulates the debate cycle and validates that DataGuardrail or the Reviewer successfully blocked the attack. It returns a strict Security Score (target value: 100%). If the Score is below 100%, the script issues `sys.exit(1)`, interrupting the hypothetical CI/CD process and protecting against the deployment of vulnerable roles.
+  • Historical behavior: the pipeline inferred security from model/guardrail prose and produced a percentage score. Phase 20 replaced this with named behavioral assertions over observable side effects; missing, skipped, or failing assertions now fail the pipeline.
 
-  2. Telemetry Aggregation & System Regulator (Self-learning)
-  Instead of raw logs, the `telemetry_aggregator.py` script is used, which mathematically compresses `telemetry.json` into `incident_summary.json`.
-  • **Regulator Agent**: Every 10 sessions, a special super-agent "Regulator" is launched. It analyzes dry incident statistics (without access to raw user prompts, which completely eliminates *Data Poisoning*) and automatically generates improvements for `roles.json` or the facts database.
-  • **Evolutionary Facts**: To avoid endless memory bloat (`project_facts.json`), the Regulator uses semantic consolidation — it merges similar facts and removes unused ones using the LRU algorithm, strictly maintaining the limit (no more than 15 facts).
+  2. Historical Regulator description (superseded)
+  Instead of raw logs, `telemetry_aggregator.py` creates a bounded report with aggregate counters and payload-free evidence records.
+  • **Regulator Agent**: Every 10 telemetry records, the Regulator may propose a change when actionable evidence exists. A deterministic gate checks the exact JSON schema, confidence bounds, affected rule and evidence references. Accepted output is queued only for human review.
+  • **Fact and policy safety**: The Regulator receives no tools and has no path that writes `project_facts.json`, `roles.json`, `capabilities.json` or policy modules. Normal deterministic approval and implementation workflows remain mandatory.
 
   3. Drift Metrics (Drift Control)
   After running automatic tests, the pipeline analyzes the average number of agent debate rounds. If solving a single task takes on average more than 3 iterations, the system issues a WARNING about context drift, signaling the need for prompt calibration or facts review.
@@ -346,8 +396,8 @@ The project's architecture is built around a 4-stage data processing pipeline th
   The system has successfully passed all tests and is locked as the stable Version 1.0:
   - **Self-Healing & RAG**: ✅ Agents autonomously extract architectural rules and apply them. The Analyst successfully intercepts infinite loops.
   - **Mini Presidio Guardrail**: ✅ Absolute interception of AWS keys, API tokens, and PII through a 3-layer system (Regex + Contextual Validation).
-  - **Hardened Evals**: ✅ Security Score 100% against injections (Indirect, Multimodal, Role-play, Exfiltration).
-  - **Regulator Trigger**: ✅ Self-evolution is enabled: every 10 sessions, the system rewrites its facts and strengthens security based on telemetry metadata, protecting against Data Poisoning.
+  - **Historical Evals claim (superseded)**: the former 100% score described prose-based scenarios and is not accepted as security verification after Phase 20.
+  - **Regulator**: advisory only. Every ten telemetry records it may emit an evidence-bound proposal for human review; it has no tools and cannot rewrite facts or policy.
   - **Two-Way Obfuscation (Deobfuscation Vault)**: ✅ Successfully implemented the tokenization and interception model. Sensitive data is substituted with tokens (`__VAULT_SECRET_...__`), and transparently deobfuscated via `Runner-Interceptor` before actual code execution. The key map is stored outside the working directory and is encrypted.
 
   ──────
@@ -466,9 +516,9 @@ snapshots, vault material, or source files.
 Destructive telemetry/audit cleanup, auto-apply, a graphical UI, and destructive
 knowledge deletion are deliberately not enabled. Each needs a separate safe
 contract, review, and regression coverage before it can expand any authority.
-See [PHASE8_PREPARATION.md](PHASE8_PREPARATION.md) for scope and remaining
-increments, and [PHASE8_RUNBOOK.md](PHASE8_RUNBOOK.md) for backup, export, and
-knowledge-removal procedures.
+The historical scope and remaining increments are consolidated in
+`CODEX_HANDOVER.md` and `PROJECT_EVOLUTION_ROADMAP.md`; backup, export, and
+knowledge-removal actions still require their separately approved procedures.
 # Product direction — agentic code-generation tool
 
 Mini Agent Sandbox is an agentic code-generation tool, not a policy or telemetry demonstration. Its useful path is: a real project profile supplies snapshot/RAG context; Coder proposes a bounded patch; Reviewer evaluates that proposal; a human approves its exact hash; and the trusted worker validates it only in a temporary Docker workspace. Policies, telemetry, the ledger and redaction make this workflow controllable and reproducible; they are not the product by themselves.

@@ -1,4 +1,131 @@
-## Publication checkpoint and next task - 2026-10-02
+## Direct-callee evidence experiment failed and was reverted - 2026-10-03
+
+The exact GTA question was run once with project evidence reordered as requested:
+`toggleFavorite`, then `loadFavoriteCodes`, then `getDescriptionForCode`, followed
+by remaining file context. Explicit labels identified the requested method and
+direct local callees. The prompt visibly contained the three missing facts.
+
+Analyst and Reviewer still stopped at "calls loadFavoriteCodes" and omitted
+`getFavoriteCheatCodesUseCase`, `uiMapper.mapFavorites`, and the assignment to
+`_favoriteCodes.value`. Both stopped normally at 305/2048 tokens. The evidence
+reordering code and its test were reverted because the live result showed no
+measurable benefit and the change would alter retrieval semantics. This makes
+local Qwen instruction-following/verification the primary remaining explanation,
+not a proven universal cause. Do not repeat this identical run.
+
+## Project Reviewer checklist experiment is only a partial fix - 2026-10-03
+
+The same live GTA `GtaSaViewModel.kt` question was repeated after adding a
+project-Reviewer-only checklist: cover every question part, trace available
+method/state chains, remove unsupported timing claims, and return the corrected
+answer without evaluating Analyst. Retrieval, Analyst, roles, limits and
+code-task contracts were unchanged.
+
+The checklist removed the unsupported "immediately" wording and the Reviewer no
+longer praised the draft. It did not make Reviewer trace `loadFavoriteCodes`:
+the final answer still omitted `getFavoriteCheatCodesUseCase`,
+`uiMapper.mapFavorites`, and the `_favoriteCodes.value` assignment despite all
+being present in evidence. Both calls stopped normally (242/2048 and 241/2048).
+Prompt-only tuning is therefore not accepted as a complete repair; do not repeat
+the run hoping for a random better sample.
+
+## Project-Q&A chain check remains open - 2026-10-03
+
+The GTA project-selected Runner was tested against indexed
+`GtaSaViewModel.kt`. Deterministic retrieval assembled all eight current chunks,
+including `toggleFavorite` and the full `loadFavoriteCodes` implementation.
+Analyst correctly described add/remove selection but reduced refresh behavior to
+"calls loadFavoriteCodes" and added an unsupported "immediately" claim. Reviewer
+repeated both omissions instead of explaining the available
+`getFavoriteCheatCodesUseCase -> uiMapper.mapFavorites -> _favoriteCodes.value`
+chain. Output limits were not involved (284/2048 and 200/2048; both stop).
+
+Project CLI now prints the existing Analyst draft before the Reviewer answer so
+future live checks expose the complete chain. This is an observability change;
+retrieval, prompts, roles and model limits are unchanged. Project Q&A is not
+accepted as fully reviewed by this run, although exact-file retrieval succeeded.
+
+## Shared-book continuation retrieval verified - 2026-10-03
+
+A real no-project Runner comparison exposed a chunk-boundary defect: retrieval
+selected the start of the Compose change-list explanation but omitted its direct
+continuation, which contained the answer about when deferred changes execute.
+General book retrieval now attaches at most one immediate successor only when it
+belongs to the same PDF and header section. The result count remains capped at
+three; agent prompts, roles and output limits are unchanged. New ingestion stores
+`chunk_index`; the existing index uses its preserved insertion order.
+
+The same real Runner question was repeated. RAG reported
+`5dbcea86...` plus continuation `b8d4b3ee...`; Analyst then stated that changes
+are deferred until Composition completes, and Reviewer preserved that fact in
+the final answer. Both model calls completed and models unloaded. Project RAG
+and GTA were not used. Verification: 15 focused tests, all 59 project-RAG tests,
+focused Ruff and the real before/after Runner check passed.
+
+## Phases 20–22 CLOSED locally - 2026-10-02
+
+Security eval acceptance now comes from 10 named behavioral tests covering
+filesystem, state, facts, network, tool dispatch and Vault effects. Model prose
+is excluded from the result. A real Docker container failed its outbound socket
+attempt, and Kotlin validation remained isolated from source fixtures.
+
+Regulator telemetry now supplies payload-free evidence IDs. Proposals require
+proposal/confidence/evidence/affected_rule and pass a deterministic admission
+gate, but remain `auto_apply=false`; Regulator receives no tools and cannot edit
+rules, roles, facts or capabilities. The independent-boundary audit is recorded
+in `SECURITY_BOUNDARY_MATRIX.md`.
+
+Verification: behavioral evals 10/10, focused Phase 20–22 tests 7/7, focused
+Ruff passed, full discovery 261 tests OK with 8 expected skips. Two pre-existing
+Docker integration modules had an incorrect doubled fixture path; correcting
+only those paths allowed their 8 real container tests to pass. No Qwen, GTA,
+project RAG, user-state reset, commit or push was used. Docker was stopped.
+
+Known separate work remains: blocked tasks may return CLI exit 0, and a full
+successful code-task route is not certified by these phases. Phase 19 evidence
+and all historical states remain preserved.
+
+## Phase 19 CLOSED locally - 2026-10-02
+
+The live blocker was traced to LiteLLM's ollama completion transport: it puts
+tools into a JSON prompt and recognizes only name/arguments; the saved Qwen
+function/parameters response remained text. LiteLLMAdapter now uses ollama_chat
+for non-empty tool requests only, reaching native /api/chat. The configured
+model, local routing policy, roles, Runner and authorization are unchanged.
+No parsing/execution of arbitrary assistant text was added.
+
+29 focused tests and Ruff passed. One real Runner menu-3 run with the original
+six-list_directory request processed exactly five calls in one Coder turn and
+blocked call six. Durable status: breaker_blocked; incident records limit=5,
+attempted=6, processed=5. No subsequent agent/regulator ran. Duration 61.25s;
+CLI exit 0 is still a known presentation limitation, not task success.
+Actual --resume rejected it (exit 1), preserving the live state. Reset behavior
+and documentation-mode limit=3 are covered deterministically, not by a live
+documentation run. All 19 historical states are unchanged; models unloaded.
+Evidence: data/offline-acceptance-20261002/breaker-native (run, console, resume,
+verification). Live evidence was not reset. See the preparation closure record.
+
+Phase 18 remains closed. Phase 19 closure covers the breaker boundary, not
+successful full code generation, Kotlin-answer accuracy or all agent workflows.
+The native transport/output-budget follow-ups and these docs remain local.
+
+## Project-Q&A output repair verified - 2026-10-02 (earlier checkpoint)
+
+The previous fixes were published as 870b2bc. The follow-up now raises only the
+project-Q&A output budget from 200 to 2048 tokens per agent, logs finish reason
+and completion tokens, and reports provider length termination as incomplete
+without retries. Roles, prompts, Runner and retrieval are unchanged.
+
+19 focused project-Q&A tests and Ruff passed. A real offline Runner menu-2 run
+of the user's Navigation.kt question completed in 104.09 seconds, exit 0:
+Analyst and Reviewer each reported finish_reason=stop and 507 output tokens.
+The final output contains the closed code block and navigation explanation.
+Evidence: data/offline-acceptance-20261002/navigation-output-ready. Two earlier
+connection-failure attempts are retained separately; Ollama was not running
+until ollama ps started it. The old user run's finish_reason remains unknown.
+Phase 19 live N+1 remains open; this is not full code-task acceptance.
+
+## Publication checkpoint and next task - 2026-10-02 (historical)
 
 The user authorized documenting and committing/pushing the accumulated offline
 fixes before further implementation. This checkpoint supersedes historical
@@ -94,7 +221,8 @@ run completed but Reviewer introduced the invalid `androidx.lifecycle.ViewModelS
 import; answer correctness is still not accepted. The second live run with books also completed, but retrieved unrelated
 reflection/DSL passages and produced lifecycleScope examples without the required
 receiver/imports. Semantic acceptance failed in both runs. Final `ollama ps`
-is empty. See `PHASE19_PREPARATION.md` for exact records. Do not retry
+is empty. The exact records are consolidated later in this file and in
+`OFFLINE_ACCEPTANCE_20261002.md`. Do not retry
 blindly, equate retrieved chunks with relevant evidence, or claim Phase 19 closure.
 Preserve new profiles `phase19-qa-review-20261002`, `phase19-qa-books-20261002`
 and every prior profile. The original `user_123/state.json` hash is unchanged.
@@ -130,8 +258,8 @@ used two local Qwen agent turns, returned text and finished automatic unload.
 Final `ollama ps` was empty; the saved `user_123/state.json` hash was unchanged.
 The ordinary control-flow repair is evidenced. Reviewer still accepted missing
 coroutine receivers and mislabelled an ordinary function as inline; semantic
-answer correctness is NOT accepted. Full records are in
-`PHASE19_PREPARATION.md`. No unit-test suite was run; added regressions are
+answer correctness is NOT accepted. Full records are consolidated later in
+this file. No unit-test suite was run; added regressions are
 unexecuted. Phase 19's live breaker acceptance remains separately unproven.
 
 ## Phase 13 handover — completed 2026-09-21
@@ -328,181 +456,177 @@ ledger evidence as historical state.
   destructive telemetry/audit cleanup, or destructive knowledge deletion. Each
   remains a separate Phase 8 security contract with regression tests.
 
-## Актуальный статус — выполнение ограниченного контура 2026-09-16
+## Bounded execution status — 2026-09-16
 
-- `phase7_quality_final` сохранён как неизменяемый неудачный исторический run:
-  фактический `state.json` содержит `in_progress`, `agent_steps: 11`. Он не
-  сбрасывался, не редактировался и не возобновлялся.
-- `phase7_operational_preflight.ps1` теперь сам запускает Docker Desktop при
-  недоступном daemon и проверяет `docker info`, native Ollama endpoint,
-  `qwen2.5:14b`, `nomic-embed-text:latest` и отдельный FastAPI. Контур прошёл.
-- Создана новая ограниченная задача `phase7_dispatch_guard`; она не использует
-  storage `phase7_quality_final`. Исправлен только documentation `create_file`:
-  невалидная структура отклоняется до записи и не списывает отдельный шаг.
-  Точечный dispatch-test: **1/1 passed**.
-- Один opt-in Ollama/Chroma integration: **1/1 passed** (21.618 s). Один
-  `MINI_AGENT_OFFLINE=1` documentation resume новой задачи: **completed**,
-  `agent_steps: 2`, Reviewer: `APPROVE`.
-- Финальный полный suite: **126 tests, OK (skipped=3), exit code 0**. После
-  прогона `ollama ps` пуст и Docker-контейнеров нет.
+- `phase7_quality_final` was preserved as an immutable historical failed run:
+  its actual `state.json` contains `in_progress` and `agent_steps: 11`. It was
+  not reset, edited, or resumed.
+- `phase7_operational_preflight.ps1` starts Docker Desktop when the daemon is
+  unavailable and checks `docker info`, the native Ollama endpoint,
+  `qwen2.5:14b`, `nomic-embed-text:latest`, and a separate FastAPI process. The
+  workflow passed.
+- A new bounded `phase7_dispatch_guard` task was created without using
+  `phase7_quality_final` storage. The only fix affected documentation
+  `create_file`: invalid structure is rejected before writing and does not
+  consume a separate step. The focused dispatch test passed **1/1**.
+- One opt-in Ollama/Chroma integration passed **1/1** in 21.618 seconds. One
+  `MINI_AGENT_OFFLINE=1` documentation resume of the new task completed with
+  `agent_steps: 2` and Reviewer verdict `APPROVE`.
+- The final full suite reported **126 tests, OK (skipped=3), exit code 0**.
+  After the run, `ollama ps` was empty and no Docker containers remained.
 
-**Phase 7 закрыта 2026-09-16. Основание: успешные preflight, один opt-in
-Ollama/Chroma run и один новый real documentation resume. Исторический
-`phase7_quality_final` остаётся сохранённым неуспешным run и не является
-результатом закрытия.**
+**Phase 7 was closed on 2026-09-16 based on the successful preflight, one
+opt-in Ollama/Chroma run, and one new real documentation resume. The historical
+`phase7_quality_final` failure remains preserved and was not closure evidence.**
 
-Новый session должен начинаться с [`README.md`](README.md) и
-[`mini_agent_sandbox_analysis.md`](../mini_agent_sandbox_analysis.md): первый
-содержит актуальный operational contour и карту модулей, второй — утверждённый
-архитектурный backlog.
+New sessions should start with [`README.md`](README.md) for the current runtime
+and module map, then use the canonical documents in this directory for the
+approved architectural record.
 
 ---
 
-## Исторические статусы и handover-записи
+## Historical status and handover records
 
-## Актуальный статус на конец сессии 2026-09-15
+## Status at the end of the 2026-09-15 session
 
-### Результат единственного resume — 2026-09-16
+### Result of the single resume — 2026-09-16
 
-- Локальный Ollama endpoint восстановлен; opt-in Ollama/Chroma integration
-  прошёл **1/1** с уже установленными моделями.
-- Единственный разрешённый `MINI_AGENT_OFFLINE=1` resume
-  `phase7_quality_final` завершился сохранённым отказом: Coder записал
-  `# Overview` вместо обязательного `## Overview`. Gate остановил задачу до
-  evidence/reviewer проверки. State: `in_progress`, `agent_steps=7`, без
-  `documentation_review`.
-- Не выполнять второй resume и не подгонять prompt. Phase 7 не закрыта;
-  дефект зафиксирован для отдельного решения после этой попытки.
+- The local Ollama endpoint was restored and the opt-in Ollama/Chroma
+  integration passed **1/1** with the already installed models.
+- The single permitted `MINI_AGENT_OFFLINE=1` resume of
+  `phase7_quality_final` ended in a preserved rejection because Coder wrote
+  `# Overview` instead of the required `## Overview`. The gate stopped the
+  task before evidence and Reviewer checks. State remained `in_progress`, with
+  `agent_steps=7` and no `documentation_review`.
+- No second resume or prompt tuning was to be performed. Phase 7 remained open
+  at this checkpoint and the defect was recorded for separate resolution.
 
-### Обновление выполнения закреплённого плана — 2026-09-16
+### Pinned-plan execution update — 2026-09-16
 
-- Для Phase 7 добавлен минимальный детерминированный evidence gate: для каждого
-  retrieval-запроса с прямым совпадением нужен один соответствующий реальный
-  RAG source path; совпадение в пути имеет приоритет над случайным упоминанием
-  в тексте. Это не восстанавливает сложное сопоставление цитат с кодом.
-- Новый отрицательный regression test и целевой набор прошли: **52/52**.
-  Полный `python -m unittest discover -v`: **126 запущено, 111 прошли,
-  15 пропущены**; Docker-тесты ожидаемо пропущены, потому что Docker Desktop
-  не был запущен оператором.
-- Opt-in `test_offline_integration` не дошёл до agent loop: Chroma embedding
-  через `ollama/nomic-embed-text` завершился `APIConnectionError`.
-  Последующий `ollama ps` не вернул нормальный список: Ollama не смог создать
-  log в `%LOCALAPPDATA%\\Ollama` из-за `Access is denied` и истёк тайм-аут
-  ожидания сервера. Это зафиксированный инфраструктурный отказ Phase 7.
-- `phase7_quality_final` не возобновлялась, её state и `agent_steps=6` не
-  менялись; модели не были успешно загружены. Не исправлять этот отказ
-  изменениями prompt, RAG или задач. Следующее действие только после внешнего
-  восстановления локального Ollama service и успешного `ollama ps`.
+- Phase 7 gained a minimal deterministic evidence gate. Every retrieval
+  request with a direct match required one corresponding real RAG source path;
+  a path match took precedence over an incidental text mention. This did not
+  restore complex citation-to-code matching.
+- The new negative regression and focused suite passed **52/52**. The full
+  `python -m unittest discover -v` run executed **126 tests: 111 passed and 15
+  skipped**; Docker tests were skipped because Docker Desktop had not been
+  started by the operator.
+- The opt-in `test_offline_integration` did not reach the agent loop. Chroma
+  embedding through `ollama/nomic-embed-text` ended in `APIConnectionError`.
+  `ollama ps` then could not create a log under `%LOCALAPPDATA%\\Ollama`
+  (`Access is denied`) and timed out waiting for the server. This was recorded
+  as a Phase 7 infrastructure failure.
+- `phase7_quality_final` was not resumed; its state and `agent_steps=6` were
+  unchanged and no models were loaded successfully. The failure was not to be
+  addressed by changing prompts, RAG, or task state. Work would continue only
+  after external restoration of Ollama and a successful `ollama ps`.
 
-**Phase 7 не завершена. Работа и генерации остановлены по просьбе пользователя.**
-Этот блок актуальнее всех прежних статусов и prompt ниже в документе.
+**At this historical checkpoint Phase 7 was not complete. Work and generation
+were stopped at the user's request.** This checkpoint superseded the older
+status and continuation prompt below it at that time.
 
-- Сохранены проверки документационного артефакта в `documentation_policy.py`,
-  изменения `runner.py` и точный поиск существующих Chroma-фрагментов в
-  `project_retrieval.py`. Есть регрессионные тесты.
-- Финальная версия упрощена: нужный Markdown, отсутствие лишних файлов,
-  обязательные разделы и реальные пути из RAG; Reviewer возвращает
-  `decision` и содержательный `reason`. Сложная схема сопоставления цитат
-  документа с цитатами кода удалена. Ссылка в каждом разделе не обязательна.
-  Наличие ссылок не является доказательством истинности всех утверждений.
-- После упрощения целевые тесты: **51/51 прошли**. Последний полный прогон:
-  **125 запущено, 122 прошли, 3 пропущены**, но он был ДО последнего упрощения.
-  Полный прогон финального упрощённого кода и повтор opt-in Ollama/Chroma
-  в этой части работы не выполнены. Старый результат opt-in 1/1 исторический.
-- Успешный реальный offline-проход финальной упрощённой версии НЕ подтверждён.
-  Модель `qwen2.5:14b` теряла ссылки; одна версия Reviewer ошибочно цитировала
-  сам документ как доказательство. Ошибочные результаты не закрыли новые задачи.
-- `phase7_offline_test`: `completed`, шаг 6, старый результат с известным
-  дефектом качества; сохранить. `phase7_quality_test`: `in_progress`, шаг 11,
-  лимит исчерпан; не сбрасывать. `phase7_quality_final`: `in_progress`, шаг 6,
-  прерван; это последняя задача, которую можно рассмотреть для продолжения.
-- Все три задачи связаны с `gta-cheats--cc0fe5de`. `user_123`, исходники
-  Android, legacy vault, зависимости и Docker-конфигурация не изменялись.
-  Коммитов не было. Смена на `qwen3.5:9b` только обсуждалась: НЕ выполнена;
-  `roles.json` не менялся.
-- После остановки отдельно выгружены `qwen2.5:14b` и `nomic-embed-text`.
-  Повторная проверка: `ollama ps` пуст, Python и Ollama runner процессов нет;
-  остались приложение Ollama и фоновый сервер. Показатель GPU не измерен:
-  `nvidia-smi` отсутствует в PATH. Не запускать модели ради проверки статуса.
+- Documentation artifact checks in `documentation_policy.py`, the `runner.py`
+  changes, and exact retrieval of existing Chroma fragments in
+  `project_retrieval.py` were preserved with regression tests.
+- The final design was simplified to require the intended Markdown file, no
+  unexpected files, required sections, and real RAG paths. Reviewer returned a
+  structured `decision` and meaningful `reason`. Complex citation-to-code
+  matching was removed. Links were not required in every section and did not
+  prove every claim.
+- Focused tests passed **51/51** after simplification. The latest full run at
+  that checkpoint ran **125 tests: 122 passed and 3 skipped**, but it preceded
+  the final simplification. No full run of the final simplified code or repeat
+  opt-in integration had yet been performed.
+- A successful real offline run had not been demonstrated. `qwen2.5:14b` lost
+  citations, and one Reviewer response cited the document itself as evidence.
+  Those failures did not close tasks.
+- `phase7_offline_test` was `completed` at step 6 with a known quality defect;
+  `phase7_quality_test` was `in_progress` at step 11 with its limit exhausted;
+  and `phase7_quality_final` was interrupted at step 6 and preserved.
+- All three tasks were bound to `gta-cheats--cc0fe5de`. `user_123`, Android
+  sources, the legacy vault, dependencies, and Docker configuration were not
+  changed. No commit was made. Switching to `qwen3.5:9b` was discussed only;
+  it was not performed and `roles.json` was unchanged.
+- After stopping, `qwen2.5:14b` and `nomic-embed-text` were unloaded. A repeat
+  check showed an empty `ollama ps` and no Python or Ollama runner processes;
+  only the Ollama application and background server remained. GPU use was not
+  measured because `nvidia-smi` was not on `PATH`. Models were not to be run
+  merely to check status.
 
-**Продолжение завтра:** сначала прочитать новый верхний блок `CODEX_HANDOVER.md`.
-Не повторять длительные циклы подбора промптов, не менять модели автоматически,
-не возвращать сложное «доказательство» качества текста. Проверить сохранённые
-изменения, затем один ограниченный реальный проход; если он не проходит,
-зафиксировать конкретный дефект и остановиться, не подгонять тест до успеха.
+### Minimal context and continuation order
 
-### Минимальный контекст и порядок продолжения
-
-Прочитать `documentation_policy.py`, документационные ветки `runner.py`,
+Read `documentation_policy.py`, the documentation branches of `runner.py`,
 `project_retrieval.py`, `test_documentation_policy.py`,
-`test_documentation_transition.py`, `test_documentation_retrieval.py` и
-`data/phase7_quality_final/state.json`. Не загружать весь репозиторий или Android-исходники.
+`test_documentation_transition.py`, `test_documentation_retrieval.py`, and
+`data/phase7_quality_final/state.json`. Do not load the entire repository or
+the Android source tree.
 
-1. Просмотреть сохранённую упрощённую реализацию; не переписывать её заново.
-   Сохранены: остановка Coder после записи, read-only Reviewer, реальный файл
-   в контексте, повторная проверка файла и SHA-256 перед завершением,
-   одинаковый проектный контекст для автора и Reviewer, сохранение in_progress
-   при лимитах/ошибках. Точные фрагменты берутся из существующего Chroma по
-   пути, найденному в snapshot; оригинальный source tree не читается.
-2. Целевые тесты уже зелёные; повторять их после изменения кода, а не по кругу.
-   Команда: `python -m unittest test_documentation_policy test_documentation_transition test_documentation_mode test_documentation_retrieval test_model_router test_arbitrator test_project_retrieval test_work_ledger -v`.
-3. Если продолжать реальный тест, использовать существующий
-   `phase7_quality_final` с `MINI_AGENT_OFFLINE=1`. Проверить сначала его лимиты
-   и последний отказ; не заменять state и не сбрасывать agent_steps.
-   Не возобновлять `user_123`, не создавать бесконечную цепочку новых задач.
-   Один ограниченный запуск, затем явный результат: completed либо конкретный отказ.
-4. Только после фиксации финального кода — один полный прогон
-   `python -m unittest discover -v` с доступом к Docker daemon, затем отдельно
-   opt-in `MINI_AGENT_RUN_OFFLINE_INTEGRATION=1` / `test_offline_integration`.
-   Docker использует только копии fixtures с прежними ограничениями.
-5. Обновить эти четыре документа фактическими результатами. Phase 7 закрывать
-   только после подтверждённого реального прохода, локального routing/RAG и
-   безопасного отказа. Не выдавать модельное ревью документа за одобрение патча
-   или верификацию знания.
+1. Inspect the saved simplified implementation without rewriting it. It
+   preserved stopping Coder after the write, a read-only Reviewer, the real
+   file in context, file and SHA-256 rechecks before completion, identical
+   project context for author and Reviewer, and `in_progress` on limits or
+   errors. Exact fragments came from existing Chroma entries selected by paths
+   found in the snapshot; the original source tree was not read.
+2. The focused tests were already green and were to be repeated after a code
+   change, not in a loop. The command was
+   `python -m unittest test_documentation_policy test_documentation_transition test_documentation_mode test_documentation_retrieval test_model_router test_arbitrator test_project_retrieval test_work_ledger -v`.
+3. Any further real test was to use the existing `phase7_quality_final` with
+   `MINI_AGENT_OFFLINE=1`, after checking its limits and last failure. State and
+   `agent_steps` were not to be reset; `user_123` was not to be resumed. One
+   bounded run would produce either `completed` or one concrete failure.
+4. After finalizing code, run `python -m unittest discover -v` once with Docker
+   daemon access, then run the opt-in
+   `MINI_AGENT_RUN_OFFLINE_INTEGRATION=1` test separately. Docker could use
+   only fixture copies under the existing restrictions.
+5. Update the four status documents only with observed results. Phase 7 could
+   close only after a real run, local routing/RAG, and safe failure were
+   demonstrated. Model review of a document was not patch approval or
+   knowledge verification.
 
-### Где лежат результаты этой работы
+### Location of the historical work artifacts
 
-Проект: `C:\Users\AlSaintUk\Desktop\Mini Agent Sandbox`.
-Вспомогательные копии, baseline и логи находятся в отдельной рабочей папке:
+The project is `C:\Users\AlSaintUk\Desktop\Mini Agent Sandbox`. Helper copies,
+the baseline, and logs were kept separately under
 `C:\Users\AlSaintUk\Documents\Codex\2026-09-14\kharohiy-mini-agent-sandbox-1-llm\work\phase7\quality_gate`.
-Рабочий код на Desktop — актуальная реализация; baseline — только для сравнения.
+The Desktop code was the current implementation; the baseline was for
+comparison only.
 
-- `focused-tests.log`: последний результат 51/51 после упрощения.
-- `full-tests.log`: 125 / 122 passed / 3 skipped до упрощения.
-- `offline-run-audit.json`: отрицательный прогон phase7_quality_test;
-  process-local сетевой guard разрешал только loopback, записаны реальные
-  Ollama completion/embedding вызовы. Это НЕ успешный acceptance-тест.
-- `phase7_quality_final` был остановлен; его финальный audit может отсутствовать.
-  Не трактовать отсутствие отчёта как успех и не запускать `verify_run.py`
-  до фактического completed.
-- Скрипты `prepare_run.py`, `offline_runner_check.py`, `verify_run.py` являются
-  вспомогательными инструментами этого расследования, а не новым production API.
-  Не запускать их автоматически. В `prepare_run.py` создание новой задачи
-  намеренно запрещено, если её каталог уже существует.
+- `focused-tests.log`: the last **51/51** result after simplification.
+- `full-tests.log`: **125 run / 122 passed / 3 skipped** before simplification.
+- `offline-run-audit.json`: a negative `phase7_quality_test` run. The
+  process-local network guard permitted loopback only and recorded real Ollama
+  completion and embedding calls. This was not a successful acceptance test.
+- `phase7_quality_final` was stopped, so its final audit could be absent. A
+  missing report was not success, and `verify_run.py` was not to run before an
+  actual `completed` state.
+- `prepare_run.py`, `offline_runner_check.py`, and `verify_run.py` were
+  investigation helpers rather than a production API. They were not to run
+  automatically. `prepare_run.py` intentionally refused to create a task when
+  its directory already existed.
 
-Если снова запускались модели, в конце завершить свой Python-процесс,
-выгрузить только использованные тестом модели командой `ollama stop <model>`
-и проверить `ollama ps`. Не оставлять GPU занятой после сообщения об остановке.
+If models were run again, the controlling Python process had to stop, only the
+models used by the test had to be unloaded with `ollama stop <model>`, and
+`ollama ps` had to be checked so the GPU was not left occupied.
 
-### Короткий prompt для следующей сессии
+### Short continuation prompt from that checkpoint
 
 ```text
-Продолжи Phase 7 с верхнего актуального блока CODEX_HANDOVER.md.
-Сначала просмотри сохранённый упрощённый код и состояние phase7_quality_final.
-Не начинай заново, не возвращай сложную схему проверки цитат, не меняй модели
-и не гоняй полные тесты после каждой правки промпта. Целевые 51/51 уже прошли;
-полный прогон упрощённой версии и её успешный реальный resume ещё не доказаны.
-Ограничь реальный эксперимент одним проходом, сохрани неуспех честно.
-Не трогай user_123, прежние тестовые состояния, Android source, vault,
-зависимости и Docker-конфигурацию. Не запускай вложенный codex exec и не коммить.
-После остановки обязательно выгрузи свои модели и проверь ollama ps.
+Continue Phase 7 from the newest status at the top of CODEX_HANDOVER.md.
+Inspect the saved simplified code and phase7_quality_final state first.
+Do not restart the work, restore complex citation checks, change models, or run
+the full suite after each prompt edit. Focused tests already passed 51/51; the
+full simplified run and a successful real resume have not been demonstrated.
+Limit the real experiment to one run and preserve failure honestly.
+Do not touch user_123, prior test state, Android sources, vault files,
+dependencies, or Docker configuration. Do not run nested codex exec or commit.
+After stopping, unload the models used and check ollama ps.
 ```
 
 ---
 
-## История предыдущих сессий — нижние статусы могут быть устаревшими
+## Previous session history — status below may be outdated
 
-﻿# Codex Handover вЂ” Mini Agent Sandbox
+# Codex Handover — Mini Agent Sandbox
 
 Date: 2026-09-15
 
@@ -557,7 +681,7 @@ data/projects/gta-cheats--cc0fe5de/
 
 ## Completed work
 
-### Phase 0 вЂ” Docker validation
+### Phase 0 — Docker validation
 
 `Dockerfile.executor`, `executor-entrypoint.sh`, `sandbox_executor.py`, fixtures and tests exist. Runtime uses:
 
@@ -569,11 +693,11 @@ ANDROID_USER_HOME=/tmp/android
 
 Real Docker positive fixture and negative compile/failing-test/missing-wrapper/source-immutability cases passed.
 
-### Phase 1 вЂ” read-only project snapshot
+### Phase 1 — read-only project snapshot
 
 `project_registry.py`, `project_manager.py`, `project_indexer.py`, and `project_search.py` provide SHA-256 incremental isolated snapshots.
 
-### Phase 2 вЂ” RAG and knowledge
+### Phase 2 — RAG and knowledge
 
 - `project_rag_ingestion.py` produces deterministic chunks from snapshot-listed files.
 - Unchanged SHA-256 documents skip re-embedding; changed files replace only their chunks; removed sources are de-indexed.
@@ -582,9 +706,9 @@ Real Docker positive fixture and negative compile/failing-test/missing-wrapper/s
 - `knowledge_store.py` provides global/project cards, evidence, versions/audit; cards start draft.
 - `knowledge_rag_sync.py` indexes only verified cards and de-indexes deprecated/archived ones.
 - `api.py` exposes knowledge list/search/create/evidence/verify/retire/history.
-- `project_retrieval.py` has fixed order: snapshot в†’ project code в†’ verified project knowledge в†’ verified global knowledge. Each hit has trust, scope, source and module labels.
+- `project_retrieval.py` has a fixed order: snapshot → project code → verified project knowledge → verified global knowledge. Each hit has trust, scope, source, and module labels.
 
-### Phase 3 вЂ” persistent work ledger
+### Phase 3 — persistent work ledger
 
 `work_ledger.py` persists project-scoped `Task`, `Plan`, `PlanStep`, `Patch`, `Review`, `ValidationReport`, `Run` in `runs/work_ledger.sqlite`.
 
@@ -611,7 +735,7 @@ Phase 5 verification (2026-09-15): `python -m unittest discover -v` passed 74 te
 
 After bounded Docker pipe capture, cidfile-based timeout cleanup and whole-fixture immutability assertions, a focused worker/ledger/Docker check passed 15/15, including a real positive fixture validation. Subsequent module-profile and ledger-read refinements passed worker/ledger tests 14/14. The full suite was run immediately before the final timeout-cleanup additions and passed 74 tests with 2 expected skips.
 
-## Phase 4 вЂ” safe patch proposal and review workflow
+## Phase 4 — safe patch proposal and review workflow
 
 Implemented in the current session:
 
@@ -759,39 +883,37 @@ existing executor limits.
 ### Copy/paste prompt for Codex CLI
 
 ```text
-Продолжи Phase 7 в репозитории C:\Users\AlSaintUk\Desktop\Mini Agent Sandbox.
-Сначала прочитай CODEX_HANDOVER.md и указанные ниже файлы. Выполни задачу
-отдельно под user_id phase7_offline_test; не запускай и не изменяй user_123.
+Continue Phase 7 in C:\Users\AlSaintUk\Desktop\Mini Agent Sandbox.
+Read CODEX_HANDOVER.md and the files listed below first. Run the task under the
+separate user_id phase7_offline_test; do not run or change user_123.
 
-Цель: проверить реальный offline-проход runner.py --resume с локальным Ollama и
-RAG зарегистрированного проекта gta-cheats--cc0fe5de. Создай только отдельное
-синтетическое состояние задачи со статусом in_progress, привяжи его к этому
-project_id, попроси агента подготовить краткий Markdown-обзор архитектуры в
-его изолированной sandbox workspace. Перед запуском установи
-MINI_AGENT_OFFLINE=1. Подтверди, что retrieval scoped к project_id, все
-completion вызовы идут только в Ollama, а файлы появились только в
-data/phase7_offline_test/. Исходник
-E:\Android\AndroidStudioProjects\GtaCheatsApp-main не открывай, не монтируй и
-не изменяй.
+Goal: verify a real offline runner.py --resume flow with local Ollama and RAG
+for the registered project gta-cheats--cc0fe5de. Create only a separate
+synthetic task state with status in_progress, bind it to that project_id, and
+ask the agent to prepare a short Markdown architecture overview in its isolated
+sandbox workspace. Set MINI_AGENT_OFFLINE=1 before the run. Confirm that
+retrieval is scoped to project_id, every completion call goes only to Ollama,
+and files appear only under data/phase7_offline_test/. Do not open, mount, or
+modify E:\Android\AndroidStudioProjects\GtaCheatsApp-main.
 
-Отдельно проверь отсутствие Ollama через failing fake adapter, не останавливая
-Ollama Desktop: вызов должен завершиться безопасной ошибкой, состояние задачи
-остаться in_progress, облачных вызовов быть не должно. Уже существующий тест
-test_offline_integration.py запускался с настоящими qwen2.5:7b и
-nomic-embed-text:latest; не подменяй его fake-ответами и повтори его командой из
-handoff. Fake используй только для детерминированной проверки failure policy.
+Separately test Ollama unavailability through a failing fake adapter without
+stopping Ollama Desktop. The call must end in a safe error, task state must
+remain in_progress, and no cloud calls may occur. The existing
+test_offline_integration.py used real qwen2.5:7b and nomic-embed-text:latest;
+do not replace its responses with fakes, and rerun it with the command from the
+handover. Use the fake only for deterministic failure-policy verification.
 
-Docker Desktop уже запущен. Docker CLI доступен, но доступ к named pipe может
-требовать разрешённого контекста. Для Ollama/RAG шага Docker не нужен. Если
-запускаешь executor validation, используй только Docker worker, временную
-копию и сохранённые network=none/resource limits. Не запускай Gradle на
-Windows.
+Docker Desktop is already running. Docker CLI is available, although named-pipe
+access may require an authorized context. Docker is not needed for the
+Ollama/RAG step. If executor validation is run, use only the Docker worker, a
+temporary copy, and the existing network=none and resource limits. Do not run
+Gradle on Windows.
 
-После выполнения запусти целевые и полные тесты, обнови CODEX_HANDOVER.md,
-NEXT_STEPS_PLAN.md, PROJECT_EVOLUTION_ROADMAP.md и README.md фактическими
-результатами. Отметь Phase 7 завершённой только если реальный resume-проход,
-project-scoped RAG, Ollama-only routing и безопасный отказ доказаны. Не
-добавляй зависимости и не делай git commit.
+Afterward, run the focused and full tests and update CODEX_HANDOVER.md,
+NEXT_STEPS_PLAN.md, PROJECT_EVOLUTION_ROADMAP.md, and README.md with observed
+results. Mark Phase 7 complete only if the real resume flow, project-scoped
+RAG, Ollama-only routing, and safe failure are demonstrated. Do not add
+dependencies or make a Git commit.
 ```
 
 ### Minimal context file list for Codex CLI
@@ -946,8 +1068,8 @@ Phases 13/13.1 were committed and pushed as `ffd0fd0` on 2026-09-21.
 
 ## Phase 14 historical planning record — superseded by completion
 
-The authoritative source is item 14 of `mini_agent_sandbox_analysis.md`:
-legacy per-user vector RAG has an append helper but no explicit main-loop
+The authoritative historical finding was that legacy per-user vector RAG had
+an append helper but no explicit main-loop
 document ingestion contract. The current system is richer than that historical
 snapshot: project-code RAG, verified project knowledge, and global books are
 already separate. Phase 14 may add only an explicit project-bound supplemental
@@ -1121,8 +1243,8 @@ Phase 18 removed the unreachable mock branch, added focused fail-closed tests,
 and corrected broad HITL claims in `README.md` and `TESTS.md`. The capability
 suite passed 6/6 and the exact-SHA patch-approval API test passed 1/1. Ruff
 passed for the changed test module; `runner.py` retains 10 pre-existing
-findings. No external tools or RAG work occurred. See
-`PHASE18_PREPARATION.md` for the completion record.
+findings. No external tools or RAG work occurred. The completion record is
+consolidated in this handover.
 
 ## Standalone Project Catalog and Q&A task — implemented locally 2026-10-01
 
@@ -1187,7 +1309,7 @@ changed. The Markdown-only validator also counts the disposable user's
 `vault.enc` and `vault.key` as artifacts; this adjacent behavior was not changed.
 Manual Ollama unload succeeded and `ollama ps` was empty. Live
 end-to-end acceptance remains unproven and needs separate diagnosis. No commit
-or push was made. See `PHASE19_PREPARATION.md`.
+or push was made. The later acceptance result is consolidated above.
 
 ## Active Phase 19 offline follow-up — 2026-10-01
 
@@ -1225,5 +1347,5 @@ persisted; retrieved global-library chunks are not persisted, so grounding is
 unverified. Ollama was stopped and `ollama ps` was empty. Current step:
 inspect/fix repeated-write turn behavior and retrieval provenance; preserve both
 probe profiles and do not make another model request without approval. Do not
-inspect Vault contents. Follow
-`PHASE19_PREPARATION.md` and `PHASE19_CONTINUATION_PROMPT.md`.
+inspect Vault contents. The subsequent acceptance result and current
+instructions are consolidated at the top of this handover.

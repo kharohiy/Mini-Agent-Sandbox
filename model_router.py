@@ -205,6 +205,11 @@ class LiteLLMAdapter:
         if model.startswith("ollama/"):
             args.setdefault("api_base", "http://localhost:11434")
             args.setdefault("timeout", ollama_completion_timeout_seconds())
+            if args.get("tools"):
+                # LiteLLM's ollama completion route emulates tools through JSON
+                # prompting. Use Ollama's native chat tool protocol instead;
+                # routing policy and the configured local model stay unchanged.
+                args["model"] = "ollama_chat/" + model.removeprefix("ollama/")
         elif "-lite" in model:
             args["tools"] = None
         return self.client.completion(**args)

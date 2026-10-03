@@ -1,4 +1,71 @@
-## Current user-directed priority - 2026-10-02
+## Direct-callee evidence did not repair Qwen review - 2026-10-03
+
+The controlled reordering experiment failed and was reverted. Retrieval already
+supplies the required facts, and placing them immediately after the requested
+method did not change the omission. Do not add more retrieval heuristics or
+repeat the same Qwen call. A next decision should explicitly choose whether the
+current concise answer is acceptable for this small local model or whether a
+different offline verifier/model is required for deeper evidence tracing.
+
+## Prompt-only Reviewer repair was insufficient - 2026-10-03
+
+Do not spend more live calls retrying the same checklist. It removed unsupported
+timing/praise but did not surface the available callee implementation. Any next
+repair should improve deterministic evidence presentation for the named method
+and its directly called project methods, then reuse the exact acceptance facts.
+Do not change token limits, project isolation or code-task orchestration.
+
+## Project-Q&A quality defect - 2026-10-03
+
+Exact-file retrieval succeeded for `GtaSaViewModel.kt`, but Analyst and Reviewer
+both omitted available refresh implementation details. The next repair must stay
+inside project-Q&A answer completeness/review behavior; do not change retrieval,
+model output limits, code-task contracts or GTA source based on this observation.
+
+## Shared-book retrieval checkpoint - 2026-10-03
+
+The bounded same-section continuation repair passed the real before/after Runner
+check. Do not repeat the Compose slot-table question without a new regression.
+The next user-gated live step remains project-selected GTA Q&A; it has not been
+run as part of this repair.
+
+## Current checkpoint - Phases 20–22 closed locally, 2026-10-02
+
+Do not resume prose-scored security evals or automatic Regulator self-editing.
+The behavioral manifest, advisory proposal gate and security-boundary matrix are
+accepted locally. Full suite: 261 OK, 8 expected skips; Docker outbound socket
+denial passed. Read the Phase 20–22 preparation and continuation records.
+
+No new phase is authorized by this closure. The next separate candidates are
+CLI exit codes for blocked tasks and a bounded successful code-task acceptance.
+Neither is required to reopen Phases 20–22. The current code and documentation
+changes are local and not yet committed/pushed.
+
+## Earlier checkpoint - Phase 19 closed locally, 2026-10-02
+
+The real offline Runner reached N+1 and stopped before call six, with five
+persisted calls, breaker_blocked, a durable incident and actual resume rejection.
+Read the final record in `CODEX_HANDOVER.md` and
+`OFFLINE_ACCEPTANCE_20261002.md`. Do not repeat the passing breaker
+or Navigation.kt runs without a new defect. Preserve their states and captures.
+
+The output-budget and native tool-transport fixes are local and not yet
+published. Further work needs its own agreed scope: full successful code-task
+acceptance and CLI exit codes for blocked tasks remain separate unresolved
+items. Historical duplicate-write observations are not silently declared fixed
+by the transport change. No new phase or broader acceptance is inferred.
+
+## Earlier checkpoint - output repair verified, 2026-10-02
+
+Publication of the prior fixes is complete (870b2bc). The Navigation.kt output
+repair passed one real offline Runner run: complete code block plus explanation,
+both agents stop normally at 507 tokens, exit 0. The bounded limit is now 2048;
+length termination is explicitly reported. See the latest handover/acceptance.
+Do not repeat this successful run without a new defect. Book augmentation is
+unchanged. Phase 19's separate live N+1 and code-task issues remain unresolved;
+their earlier traces remain the starting point for any subsequent scoped work.
+
+## Previous user-directed priority - 2026-10-02
 
 1. Publish the accumulated offline fixes and this documentation checkpoint.
 2. Then investigate project-Q&A output truncation: the user's Navigation.kt
@@ -63,8 +130,8 @@ both user questions, final text, exit code 0 and automatic unload. The repeated
 code-validation loop no longer occurs for general questions. Reviewer still
 accepted incorrect coroutine snippets and terminology: semantic correctness
 remains open. Do not turn this workflow result into an all-system success
-claim or repeat blind model retries. See `CODEX_HANDOVER.md` and the exact run
-records in `PHASE19_PREPARATION.md`. Preserve the user's failed `user_123` run.
+claim or repeat blind model retries. See `CODEX_HANDOVER.md` and
+`OFFLINE_ACCEPTANCE_20261002.md`. Preserve the user's failed `user_123` run.
 
 ## Previous priority — Phase 19 offline Ollama follow-up
 
@@ -92,9 +159,8 @@ Compose Internals* but repeated `create_file` three times; the five-minute cap
 stopped it before Reviewer/completion. The tool records persisted, but retrieval
 hits are not saved, so grounding is unverified. Current step: inspect/fix
 repeated-write turn behavior and retrieval provenance; do not resume either
-probe profile or make another model request without approval. Follow
-`PHASE19_PREPARATION.md` and
-`PHASE19_CONTINUATION_PROMPT.md` in order.
+probe profile or make another model request without approval. The historical
+probe record and current status are consolidated in `CODEX_HANDOVER.md`.
 
 ## Current checkpoint — Phase 19 implementation complete locally
 
@@ -102,11 +168,11 @@ Phase 18 removed the unreachable mocked confirmation branch for unsupported
 external tools, preserved exact-hash human approval for project patches, and
 corrected the general-HITL documentation. The focused capability tests passed
 6/6; the patch-approval API test passed 1/1. Ruff passed for the modified test
-module; `runner.py` retains 10 pre-existing findings. See
-`PHASE18_PREPARATION.md` for the completion record. Phase 19's implementation
+module; `runner.py` retains 10 pre-existing findings. The Phase 18 completion
+record is consolidated in `CODEX_HANDOVER.md`. Phase 19's implementation
 and deterministic acceptance are complete locally; live Runner acceptance is
-inconclusive and needs separate diagnosis. See `PHASE19_PREPARATION.md` and
-`PHASE19_CONTINUATION_PROMPT.md`.
+inconclusive and needs separate diagnosis. Its later acceptance result is
+consolidated in `CODEX_HANDOVER.md` and `OFFLINE_ACCEPTANCE_20261002.md`.
 
 **Standalone approved task — Project Catalog and Project-Bound Q&A:** implemented
 locally and recorded in `TASK_PROJECT_CATALOG_AND_QA.md`; this does not create
@@ -355,246 +421,286 @@ auto-apply, a graphical UI, and destructive knowledge deletion. Do not begin
 them without a narrowly defined contract and regression tests that preserve the
 FastAPI/Docker boundary and default-deny behavior.
 
-## Актуальный статус — выполнение ограниченного контура 2026-09-16
+## Bounded execution status — 2026-09-16
 
-- `phase7_quality_final` сохранён без изменений как исторический неуспешный
-  run; фактический state: `in_progress`, `agent_steps: 11`.
-- `phase7_operational_preflight.ps1` автоматически запускает Docker Desktop,
-  затем подтверждает Docker, native Ollama, обе требуемые модели и отдельный
-  FastAPI. Все проверки контура прошли.
-- Новая ограниченная задача `phase7_dispatch_guard` создана в существующем
-  storage. Один fix dispatch-path предотвращает списание отдельного шага за
-  отклонённый до записи невалидный documentation `create_file`; точечный test
-  прошёл **1/1**.
-- Один opt-in Ollama/Chroma run прошёл **1/1**; один real offline resume новой
-  задачи завершён: `completed`, `agent_steps: 2`, Reviewer `APPROVE`.
-- Финальный полный suite подтверждён audit-логом: **126 tests, OK
-  (skipped=3), exit code 0**; post-run `ollama ps` пуст, Docker-контейнеров нет.
+- `phase7_quality_final` was preserved unchanged as a historical failed run;
+  its actual state is `in_progress`, with `agent_steps: 11`.
+- `phase7_operational_preflight.ps1` starts Docker Desktop automatically, then
+  confirms Docker, native Ollama, both required models, and a separate FastAPI
+  process. All workflow checks passed.
+- A new bounded `phase7_dispatch_guard` task was created in the existing
+  storage. One dispatch-path fix prevents a rejected invalid documentation
+  `create_file` request from consuming a separate step; the focused test
+  passed **1/1**.
+- One opt-in Ollama/Chroma run passed **1/1**. One real offline resume of the
+  new task completed with `agent_steps: 2` and Reviewer verdict `APPROVE`.
+- The audit log confirmed the final full suite: **126 tests, OK (skipped=3),
+  exit code 0**. After the run, `ollama ps` was empty and no Docker containers
+  remained.
 
-**Phase 7 закрыта 2026-09-16. Не возобновлять и не нормализовать
-`phase7_quality_final`; он остаётся историческим отказом.**
+**Phase 7 was closed on 2026-09-16. Do not resume or normalize
+`phase7_quality_final`; it remains a historical failure.**
 
-Для следующей фазы использовать [`README.md`](README.md) как карту текущего
-контура и [`mini_agent_sandbox_analysis.md`](../mini_agent_sandbox_analysis.md)
-как список архитектурных приоритетов. Preflight сам запускает Docker Desktop;
-ручной запуск Docker оператором не требуется.
-
----
-
-## Исторические планы и статусы
-
-## Актуальный статус на конец сессии 2026-09-15
-
-### Результат единственного resume — 2026-09-16
-
-- Локальный Ollama endpoint восстановлен; opt-in Ollama/Chroma integration:
-  **1/1 passed**.
-- Единственный `MINI_AGENT_OFFLINE=1` resume `phase7_quality_final` сохранил
-  отказ до evidence/reviewer проверки: Coder записал `# Overview` вместо
-  обязательного `## Overview`. State: `in_progress`, `agent_steps=7`, без
-  `documentation_review`.
-- Второй resume и prompt-подгонка запрещены. Дефект зафиксирован для
-  отдельного решения; Phase 7 не закрыта.
-
-### Обновление выполнения закреплённого плана — 2026-09-16
-
-- В `documentation_policy.py` добавлен минимальный детерминированный evidence
-  gate: на каждый retrieval-запрос с прямым совпадением требуется один
-  соответствующий реальный source path из RAG. Сложная проверка цитат с
-  фрагментами кода не возвращалась.
-- Новый regression test и целевой набор: **52/52 passed**. Полный suite:
-  **126 run, 111 passed, 15 skipped**; Docker-тесты ожидаемо пропущены,
-  потому что Docker Desktop не был запущен оператором.
-- Opt-in Ollama/Chroma integration остановился до agent loop:
-  `ollama/nomic-embed-text` вернул `APIConnectionError`. Команда `ollama ps`
-  затем не смогла создать log в `%LOCALAPPDATA%\\Ollama` (`Access is denied`)
-  и завершилась по тайм-ауту сервера.
-- Это инфраструктурный отказ, а не дефект документационного gate. Не запускать
-  `phase7_quality_final`, не сбрасывать state/`agent_steps=6` и не менять
-  prompts/RAG. Продолжать только после внешнего восстановления Ollama и
-  успешного `ollama ps`.
-
-## Закреплённый порядок выполнения Phase 7
-
-Этот порядок обязателен до закрытия Phase 7. Не расширять его исправлениями,
-не относящимися к offline-документационному quality gate: такие находки только
-записывать отдельно с точным симптомом и тестом.
-
-1. Сохранить текущие состояния и проверить границы задачи без запуска моделей.
-   Не изменять `user_123`, Android-исходники, legacy vault, зависимости,
-   Docker-конфигурацию или `roles.json`.
-2. Уточнить детерминированный контракт качества документации: он должен
-   требовать реальные RAG-источники, покрывающие entry/navigation, состав
-   модулей и поддержанные data-flow. Не возвращать удалённую сложную схему
-   сопоставления цитат с фрагментами кода.
-3. Сначала добавить регрессионные тесты на отклонение: недостаточные или
-   самоссылочные источники, DTO-описание вместо архитектуры и ложное
-   `APPROVE` Reviewer. Добавить положительный компактный случай.
-4. Внести минимальные изменения только в `documentation_policy.py`,
-   документационные ветки `runner.py` и, если потребуется для точного поиска,
-   `project_retrieval.py`; затем прогнать целевой набор тестов.
-5. После зелёных целевых тестов один раз выполнить полный `unittest discover`
-   и отдельно opt-in offline integration.
-6. Выполнить ровно один resume сохранённой `phase7_quality_final` c
-   `MINI_AGENT_OFFLINE=1`, не сбрасывая state или `agent_steps`. Зафиксировать
-   только `completed` либо конкретный отказ; не подбирать промпты по кругу.
-7. После работы выгрузить использованные модели, проверить `ollama ps` и
-   обновить актуальные статусы в четырёх документах только результатами,
-   которые действительно были получены.
-
-Критерий закрытия: quality gate детерминированно отклоняет некачественный
-документ; целевые, полный и opt-in тесты зелёные; единственный реальный
-offline-resume подтверждён либо его конкретный отказ сохранён.
-
-**Phase 7 не завершена. Работа и генерации остановлены по просьбе пользователя.**
-Этот блок актуальнее всех прежних статусов и prompt ниже в документе.
-
-- Сохранены проверки документационного артефакта в `documentation_policy.py`,
-  изменения `runner.py` и точный поиск существующих Chroma-фрагментов в
-  `project_retrieval.py`. Есть регрессионные тесты.
-- Финальная версия упрощена: нужный Markdown, отсутствие лишних файлов,
-  обязательные разделы и реальные пути из RAG; Reviewer возвращает
-  `decision` и содержательный `reason`. Сложная схема сопоставления цитат
-  документа с цитатами кода удалена. Ссылка в каждом разделе не обязательна.
-  Наличие ссылок не является доказательством истинности всех утверждений.
-- После упрощения целевые тесты: **51/51 прошли**. Последний полный прогон:
-  **125 запущено, 122 прошли, 3 пропущены**, но он был ДО последнего упрощения.
-  Полный прогон финального упрощённого кода и повтор opt-in Ollama/Chroma
-  в этой части работы не выполнены. Старый результат opt-in 1/1 исторический.
-- Успешный реальный offline-проход финальной упрощённой версии НЕ подтверждён.
-  Модель `qwen2.5:14b` теряла ссылки; одна версия Reviewer ошибочно цитировала
-  сам документ как доказательство. Ошибочные результаты не закрыли новые задачи.
-- `phase7_offline_test`: `completed`, шаг 6, старый результат с известным
-  дефектом качества; сохранить. `phase7_quality_test`: `in_progress`, шаг 11,
-  лимит исчерпан; не сбрасывать. `phase7_quality_final`: `in_progress`, шаг 6,
-  прерван; это последняя задача, которую можно рассмотреть для продолжения.
-- Все три задачи связаны с `gta-cheats--cc0fe5de`. `user_123`, исходники
-  Android, legacy vault, зависимости и Docker-конфигурация не изменялись.
-  Коммитов не было. Смена на `qwen3.5:9b` только обсуждалась: НЕ выполнена;
-  `roles.json` не менялся.
-- После остановки отдельно выгружены `qwen2.5:14b` и `nomic-embed-text`.
-  Повторная проверка: `ollama ps` пуст, Python и Ollama runner процессов нет;
-  остались приложение Ollama и фоновый сервер. Показатель GPU не измерен:
-  `nvidia-smi` отсутствует в PATH. Не запускать модели ради проверки статуса.
-
-**Продолжение завтра:** сначала прочитать новый верхний блок `CODEX_HANDOVER.md`.
-Не повторять длительные циклы подбора промптов, не менять модели автоматически,
-не возвращать сложное «доказательство» качества текста. Проверить сохранённые
-изменения, затем один ограниченный реальный проход; если он не проходит,
-зафиксировать конкретный дефект и остановиться, не подгонять тест до успеха.
+For later work, use [`README.md`](README.md) as the map of the current runtime
+and the canonical documents in this directory as the architectural record.
+The preflight starts Docker Desktop itself; the operator does not need to
+start it manually.
 
 ---
 
-## Исторические материалы
+## Historical plans and status
 
-# План следующих шагов после P0 hardening
+## Status at the end of the 2026-09-15 session
 
-Этот план продолжает анализ `mini_agent_sandbox_analysis.md` и учитывает уже выполненные изменения:
+### Result of the single resume — 2026-09-16
 
-- workspace path isolation и валидация `user_id`;
-- tenant-scoped Vault (`data/<user_id>/.vault`);
-- policy layer для `project_facts`;
-- structured Reviewer verdict;
-- обязательный Reviewer после Arbitrator;
+- The local Ollama endpoint was restored and the opt-in Ollama/Chroma
+  integration passed **1/1**.
+- The single `MINI_AGENT_OFFLINE=1` resume of `phase7_quality_final` preserved
+  a rejection before evidence and Reviewer checks because Coder wrote
+  `# Overview` instead of the required `## Overview`. State remained
+  `in_progress`, with `agent_steps=7` and no `documentation_review`.
+- A second resume and prompt tuning were prohibited. The defect was recorded
+  for separate work; Phase 7 was still open at this checkpoint.
+
+### Pinned-plan execution update — 2026-09-16
+
+- `documentation_policy.py` gained a minimal deterministic evidence gate: each
+  retrieval request with a direct match requires one corresponding real RAG
+  source path. The complex citation-to-code matching design was not restored.
+- The new regression test and focused suite passed **52/52**. The full suite
+  ran **126 tests: 111 passed and 15 skipped**; Docker tests were skipped
+  because Docker Desktop had not been started by the operator.
+- The opt-in Ollama/Chroma integration stopped before the agent loop:
+  `ollama/nomic-embed-text` returned `APIConnectionError`. `ollama ps` then
+  failed to create a log under `%LOCALAPPDATA%\\Ollama` (`Access is denied`)
+  and timed out while waiting for the server.
+- This was an infrastructure failure, not a documentation-gate defect.
+  `phase7_quality_final` was not to be run, its state and `agent_steps=6` were
+  not to be reset, and prompts/RAG were not to be changed until Ollama was
+  restored externally and `ollama ps` succeeded.
+
+## Pinned Phase 7 execution order
+
+This order remained mandatory until Phase 7 closure. It was not to be expanded
+with fixes unrelated to the offline documentation quality gate; such findings
+were to be recorded separately with their exact symptom and test.
+
+1. Preserve current state and inspect task boundaries without invoking models.
+   Do not change `user_123`, Android sources, the legacy vault, dependencies,
+   Docker configuration, or `roles.json`.
+2. Define the deterministic documentation-quality contract. It must require
+   real RAG sources covering entry/navigation, module composition, and
+   supported data flow. Do not restore the removed complex citation-to-code
+   matching design.
+3. Add rejection regressions first: insufficient or self-referential sources,
+   a DTO description presented as architecture, and a false Reviewer
+   `APPROVE`. Add one compact positive case.
+4. Make the minimum changes in `documentation_policy.py`, the documentation
+   branches of `runner.py`, and, only if exact retrieval needs it,
+   `project_retrieval.py`; then run the focused tests.
+5. After the focused tests pass, run `unittest discover` once and run the
+   opt-in offline integration separately.
+6. Resume the saved `phase7_quality_final` exactly once with
+   `MINI_AGENT_OFFLINE=1`, without resetting state or `agent_steps`. Record
+   either `completed` or the concrete failure; do not tune prompts in a loop.
+7. Afterward, unload models used by the run, check `ollama ps`, and update the
+   four status documents only with results that actually occurred.
+
+Closure required the quality gate to reject a poor document deterministically,
+green focused/full/opt-in tests, and either a confirmed single real offline
+resume or a preserved concrete failure.
+
+**At this historical checkpoint Phase 7 was not complete. Work and generation
+were stopped at the user's request.** This checkpoint superseded the older
+status and continuation prompt below it at that time.
+
+- Documentation artifact checks in `documentation_policy.py`, the `runner.py`
+  changes, and exact retrieval of existing Chroma fragments in
+  `project_retrieval.py` were preserved with regression tests.
+- The final design was simplified to require the intended Markdown file, no
+  unexpected files, required sections, and real RAG paths. Reviewer returned a
+  structured `decision` and meaningful `reason`. Complex citation-to-code
+  matching was removed. Links were not required in every section and did not
+  prove every claim.
+- Focused tests passed **51/51** after simplification. The latest full run at
+  that checkpoint ran **125 tests: 122 passed and 3 skipped**, but it preceded
+  the final simplification. No full run of the final simplified code or repeat
+  opt-in integration had yet been performed.
+- A successful real offline run had not been demonstrated. `qwen2.5:14b` lost
+  citations, and one Reviewer response cited the document itself as evidence.
+  Those failed results did not close tasks.
+- `phase7_offline_test` was `completed` at step 6 with a known quality defect;
+  `phase7_quality_test` was `in_progress` at step 11 with its limit exhausted;
+  and `phase7_quality_final` was interrupted at step 6 and preserved.
+- All three tasks were bound to `gta-cheats--cc0fe5de`. `user_123`, Android
+  sources, the legacy vault, dependencies, and Docker configuration were not
+  changed. No commit was made. Switching to `qwen3.5:9b` was discussed only;
+  it was not performed and `roles.json` was unchanged.
+- After stopping, `qwen2.5:14b` and `nomic-embed-text` were unloaded. A repeat
+  check showed an empty `ollama ps` and no Python or Ollama runner processes;
+  only the Ollama application and background server remained. GPU use was not
+  measured because `nvidia-smi` was not on `PATH`. Models were not to be run
+  merely to check status.
+
+The continuation instruction at that checkpoint was to read the newest status
+at the top of `CODEX_HANDOVER.md`, avoid repeated prompt-tuning loops or model
+changes, inspect saved work, run one bounded real attempt, and record any
+failure without tuning the test to pass.
+
+---
+
+## Historical material
+
+# Next steps after P0 hardening
+
+This historical plan assumed the following changes had already been completed:
+
+- workspace path isolation and `user_id` validation;
+- a tenant-scoped vault at `data/<user_id>/.vault`;
+- a policy layer for `project_facts`;
+- a structured Reviewer verdict;
+- a mandatory Reviewer step after Arbitrator;
 - language-aware validation routing.
 
-Цель следующей итерации — превратить оставшиеся архитектурные ограничения в проверяемые security boundaries, не смешивая их с prompt engineering, RAG и telemetry.
+The goal of the next iteration was to turn the remaining architectural
+constraints into testable security boundaries without mixing them with prompt
+engineering, RAG, or telemetry.
 
-## Этап 0 — Зафиксировать security contract
+## Stage 0 — Define the security contract
 
-**Зачем:** до контейнеризации нужно определить, что именно разрешено запускать и где проходит граница доверия.
+**Reason:** before containerization, define what may run and where the trust
+boundary lies.
 
-1. Описать threat model: LLM и сгенерированный код считаются недоверенными; policy engine и runner — доверенными.
-2. Завести capability manifest для tools: filesystem, network, secrets, subprocess, build/test.
-3. Определить для каждой capability owner, scope, default (`deny`) и требуемое human approval.
-4. Разделить два режима:
-   - `plan_only` — агент читает/пишет workspace, но не запускает код;
-   - `validated_execution` — build/test выполняется только в изолированной среде.
+1. Document the threat model: the LLM and generated code are untrusted; the
+   policy engine and runner are trusted.
+2. Create a capability manifest for filesystem, network, secrets, subprocess,
+   and build/test tools.
+3. Define each capability's owner, scope, default (`deny`), and required human
+   approval.
+4. Separate two modes:
+   - `plan_only`: the agent reads and writes its workspace but does not execute code;
+   - `validated_execution`: build and test run only in the isolated environment.
 
-**Критерий готовности:** documented capability matrix и тест, доказывающий, что неизвестный tool/block запуска отклоняется по умолчанию.
+**Completion criterion:** a documented capability matrix and a test proving
+that an unknown tool or execution block is denied by default.
 
-## Этап 1 — Реальная execution sandbox
+## Stage 1 — Real execution sandbox
 
-**Зачем:** текущая workspace isolation не защищает хост, если в будущем будет запускаться сгенерированный код или Gradle build.
+**Reason:** workspace isolation alone does not protect the host if generated
+code or a Gradle build is executed later.
 
-1. Выбрать execution backend (решение владельца проекта):
-   - Docker/Podman с Linux-изоляцией — рекомендуемый вариант для CI и Linux;
-   - отдельная VM/Windows Sandbox — вариант для локальной Windows-разработки;
-   - отдельный restricted subprocess — только временная мера, не эквивалент container/VM.
-2. Создать `SandboxExecutor` adapter; `runner.py` не должен напрямую вызывать build tools.
-3. В backend включить deny-by-default:
-   - network disabled;
-   - read-only base image и writable только user workspace;
-   - CPU, memory, process и wall-clock limits;
-   - non-root user;
-   - без host mounts, кроме явно выделенной копии workspace.
-4. Вынести результаты build/test в структурированный report: exit code, timeout, resource limit, stdout/stderr с masking секретов.
-5. Добавить integration tests: network denied, host path unavailable, timeout, memory/process limit, workspace write allowed.
+1. Choose the execution backend as a project-owner decision:
+   - Docker/Podman with Linux isolation for CI and Linux;
+   - a separate VM or Windows Sandbox for local Windows development;
+   - a restricted subprocess only as a temporary measure, not as an equivalent
+     to a container or VM.
+2. Create a `SandboxExecutor` adapter; `runner.py` must not invoke build tools
+   directly.
+3. Configure the backend as deny-by-default: no network, read-only base image,
+   only the user workspace writable, CPU/memory/process/wall-clock limits, a
+   non-root user, and no host mounts except an explicitly copied workspace.
+4. Return build/test results as a structured report containing exit code,
+   timeout, resource-limit status, and secret-masked stdout/stderr.
+5. Add integration tests for denied network, unavailable host paths, timeout,
+   memory/process limits, and allowed workspace writes.
 
-**Критерий готовности:** Kotlin/Python validation выполняется только через `SandboxExecutor`; тесты подтверждают отсутствие доступа к сети и host filesystem.
+**Completion criterion:** Kotlin/Python validation runs only through
+`SandboxExecutor`, and tests demonstrate no network or host-filesystem access.
 
-**Выбранное решение:** Docker — execution backend; FastAPI — API-слой проекта. Docker sandbox запускается из `C:\Users\AlSaintUk\Desktop\Mini Agent Sandbox`, но получает только выделенную копию user workspace, а не доступ ко всему host project directory.
+**Selected design:** Docker is the execution backend and FastAPI is the API
+layer. The Docker sandbox starts from the repository but receives only a
+dedicated copy of the user workspace, never the full host project directory.
 
-## Этап 2 — Довести Kotlin/Android validation до реального integration flow
+## Stage 2 — Complete a real Kotlin/Android validation flow
 
-**Зачем:** сейчас route Kotlin → Gradle корректный, но проверен mock-ом, а не Android fixture.
+**Reason:** at this checkpoint the Kotlin-to-Gradle route was correct but had
+only been checked with mocks, not an Android fixture.
 
-1. Добавить минимальный Kotlin/Android fixture с Gradle wrapper в `tests/fixtures/`.
-2. Запускать в sandbox последовательность `gradlew --offline lint test`.
-3. Добавить optional checks `detekt` и `ktlintCheck` только при явно объявленных Gradle tasks; при их отсутствии report должен сообщать `not configured`, а не симулировать прохождение.
-4. Добавить отрицательные fixtures: ошибка компиляции, failing unit test, Android lint violation, отсутствующий wrapper.
-5. Определить правила для mixed-language workspace: отдельный manifest с validator chains либо reject, как сейчас.
+1. Add a minimal Kotlin/Android fixture with a Gradle wrapper under
+   `tests/fixtures/`.
+2. Run `gradlew --offline lint test` in the sandbox.
+3. Run optional `detekt` and `ktlintCheck` checks only when those Gradle tasks
+   are declared; otherwise report `not configured`.
+4. Add negative fixtures for compilation failure, a failing unit test, an
+   Android lint violation, and a missing wrapper.
+5. Define mixed-language workspace rules through explicit validator chains or
+   reject the workspace.
 
-**Критерий готовности:** реальный fixture проходит lint/test в изолированной среде; каждая отрицательная fixture блокирует переход к Reviewer.
+**Completion criterion:** the real fixture passes lint/test in isolation and
+each negative fixture blocks transition to Reviewer.
 
-## Этап 3 — Закрыть symlink/TOCTOU coverage
+## Stage 3 — Complete symlink and TOCTOU coverage
 
-**Зачем:** код блокирует symlink traversal, но Windows не позволил создать symlink в текущем тестовом окружении.
+**Reason:** the code blocked symlink traversal, but the Windows test
+environment could not create a symlink.
 
-1. Добавить Linux CI job, где symlink разрешены без special privilege.
-2. Выполнить tests для:
-   - symlink внутри workspace, ведущего наружу;
-   - symlink на файл вне workspace;
-   - symlink на каталог внутри workspace;
-   - замены обычного файла на symlink между validation и open (TOCTOU).
-3. Для записи использовать платформенный no-follow primitive, где он доступен, либо создавать файлы через trusted executor в isolated filesystem.
-4. На Windows документировать prerequisite для локального symlink теста (Developer Mode или необходимая privilege) и оставлять skip только с явной причиной.
+1. Add a Linux CI job where symlinks are available without special privilege.
+2. Test an internal symlink escaping the workspace, a symlink to an external
+   file, a symlink to an internal directory, and replacement of a regular file
+   with a symlink between validation and open (TOCTOU).
+3. For writes, use a platform no-follow primitive where available or create
+   files through the trusted executor in an isolated filesystem.
+4. Document the Windows prerequisite for local symlink tests and permit skips
+   only with an explicit reason.
 
-**Критерий готовности:** обязательный CI test доказывает, что выход через symlink невозможен; локальный skip не маскирует отсутствие CI coverage.
+**Completion criterion:** a mandatory CI test demonstrates that symlinks cannot
+escape the workspace; a local skip does not hide missing CI coverage.
 
-## Этап 4 — Миграция и удаление legacy vault
+## Stage 4 — Migrate and remove the legacy vault
 
-**Зачем:** корневые `.vault` и `.vault_key` больше не используются runtime, но могут содержать старые секреты.
+**Reason:** root `.vault` and `.vault_key` files were no longer used at runtime
+but could contain old secrets.
 
-1. Добавить read-only `vault_migration --dry-run`, который проверяет legacy файлы `C:\Users\AlSaintUk\Desktop\Mini Agent Sandbox\.vault` и `.vault_key` и показывает только metadata: наличие файлов и число tokens. Значения секретов никогда не печатать.
-2. Добавить opt-in миграцию: пользователь явно задаёт target `user_id`; tool создаёт encrypted backup и атомарно пишет новый tenant vault в `data/<user_id>/.vault`.
-3. Проверить корректность расшифровки до переключения и сохранить audit record без plaintext.
-4. Удалять legacy файлы только отдельной подтверждённой командой после успешной миграции и backup verification.
-5. Добавить тесты: successful migration, wrong key, corrupt vault, rollback, no cross-tenant token leakage.
+1. Add a read-only `vault_migration --dry-run` that checks the root legacy
+   `.vault` and `.vault_key` files and reports only file presence and token
+   count, never secret values.
+2. Add an opt-in migration where the user explicitly supplies the target
+   `user_id`; create an encrypted backup and atomically write the new tenant
+   vault under `data/<user_id>/.vault`.
+3. Verify decryption before switching and preserve an audit record without
+   plaintext.
+4. Delete legacy files only through a separately confirmed command after
+   successful migration and backup verification.
+5. Test successful migration, wrong key, corrupt vault, rollback, and absence
+   of cross-tenant token leakage.
 
-**Критерий готовности:** legacy secrets либо безопасно мигрированы в один выбранный tenant vault, либо остаются нетронутыми; автоматического удаления нет.
+**Completion criterion:** legacy secrets are either safely migrated to one
+selected tenant vault or left untouched; no automatic deletion occurs.
 
-**Пояснение:** `user_id` — это безопасный технический идентификатор tenant/workspace (например, `local_owner`), а не путь Windows и не имя папки проекта. Старые `.vault` и `.vault_key` появились до tenant-isolation и поэтому не содержат информации о владельце. Для single-user локального проекта их можно мигрировать в один явно выбранный namespace, например `local_owner`. Удаление legacy файлов — только после вашей отдельной команды и успешной проверки backup.
+**Clarification:** `user_id` is a safe technical tenant/workspace identifier,
+such as `local_owner`, rather than a Windows path or project folder name. The
+legacy files predate tenant isolation and contain no owner identity. A
+single-user installation can migrate them into one explicitly selected
+namespace. Deletion requires a separate user command after backup verification.
 
-## Этап 5 — Усилить behavioral security evals
+## Stage 5 — Strengthen behavioral security evaluations
 
-**Зачем:** текстовая реакция LLM не доказывает отсутствие side effect.
+**Reason:** an LLM's textual response does not prove the absence of side
+effects.
 
-1. Для каждого adversarial case проверять state mutation, tool execution, facts mutation, vault access и filesystem diff.
-2. Добавить eval, в котором agent пытается изменить security fact; ожидание — deterministic policy deny и отсутствие записи.
-3. Добавить eval, в котором Reviewer возвращает `DO NOT APPROVE`; ожидание — workflow не завершён.
-4. Добавить eval, в котором Arbitrator вынес решение; ожидание — финальный Reviewer всё равно вызывается.
-5. Добавить failure reports с machine-readable reason code и evidence links.
+1. For every adversarial case, check state mutation, tool execution, fact
+   mutation, vault access, and filesystem diff.
+2. Add an evaluation where an agent tries to change a security fact; require a
+   deterministic policy denial and no write.
+3. Add an evaluation where Reviewer returns `DO NOT APPROVE`; require the
+   workflow to remain incomplete.
+4. Add an evaluation where Arbitrator issues a decision; require the final
+   Reviewer to run anyway.
+5. Add failure reports with machine-readable reason codes and evidence links.
 
-**Критерий готовности:** security score основан на observable side effects, а не только на содержимом ответов модели.
+**Completion criterion:** the security score is based on observable side
+effects, not only model-response text.
 
-## Порядок выполнения
+## Execution order
 
 ```text
-Этап 0 → выбор backend → Этап 1 → Этап 2 и 3 параллельно → Этап 4 → Этап 5
+Stage 0 → choose backend → Stage 1 → Stages 2 and 3 in parallel → Stage 4 → Stage 5
 ```
 
-RAG, telemetry и Regulator не следует расширять до завершения Этапов 1–5: они не компенсируют отсутствие execution boundary и behavioral assertions.
+RAG, telemetry, and Regulator were not to be expanded before Stages 1–5 were
+complete because they cannot replace an execution boundary or behavioral
+assertions.
 # Current evolution status — 2026-09-15
 
 - Docker Kotlin/Android validation is real and confined to a Linux executor.

@@ -51,6 +51,30 @@ class LiteLLMAdapterTests(unittest.TestCase):
 
         self.assertEqual(client.kwargs["tools"], tools)
         self.assertEqual(client.kwargs["api_base"], "http://localhost:11434")
+        self.assertEqual(client.kwargs["model"], "ollama_chat/qwen2.5:14b")
+
+    def test_native_ollama_tool_transport_preserves_history_and_response(self):
+        from unittest.mock import Mock
+        response = object()
+        client = Mock()
+        client.completion.return_value = response
+        messages = [
+            {"role": "assistant", "tool_calls": [{"id": "call-1", "type": "function",
+                "function": {"name": "list_directory", "arguments": '{"dirpath":""}'}}]},
+            {"role": "tool", "tool_call_id": "call-1", "name": "list_directory", "content": "[]"},
+        ]
+        tools = [{"type": "function", "function": {"name": "list_directory"}}]
+        result = LiteLLMAdapter(client).complete("ollama/qwen2.5:14b", messages, tools=tools)
+        self.assertIs(result, response)
+        self.assertEqual(client.completion.call_args.kwargs["messages"], messages)
+        self.assertEqual(client.completion.call_args.kwargs["tools"], tools)
+
+    def test_no_tools_keeps_existing_completion_transport(self):
+        from unittest.mock import Mock
+        for tools in (None, []):
+            client = Mock()
+            LiteLLMAdapter(client).complete("ollama/qwen2.5:14b", [], tools=tools)
+            self.assertEqual(client.completion.call_args.kwargs["model"], "ollama/qwen2.5:14b")
 
     def test_ollama_completion_has_a_bounded_operator_configurable_wait(self):
         class Client:

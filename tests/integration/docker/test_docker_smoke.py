@@ -61,6 +61,18 @@ class DockerSmokeTests(unittest.TestCase):
             self.assertEqual(marker.read_text(encoding="utf-8"), "unchanged")
             self.assertFalse((source_path / "result").exists())
 
+    def test_isolated_executor_cannot_open_an_outbound_socket(self):
+        with tempfile.TemporaryDirectory() as source:
+            report = DockerSandboxExecutor(CapabilityPolicy(), "validated_execution").execute(
+                ExecutionRequest(source, [
+                    "python3", "-c",
+                    "import socket; socket.create_connection(('1.1.1.1', 53), timeout=1)",
+                ])
+            )
+        self.assertFalse(report.allowed)
+        self.assertIsNotNone(report.exit_code)
+        self.assertNotEqual(report.exit_code, 0)
+
     def test_container_security_settings_are_present(self):
         container_id = subprocess.check_output([
             DOCKER, "create", "--network", "none", "--read-only", "--user", "1000:1000",

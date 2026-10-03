@@ -189,3 +189,80 @@ investigation of truncation. No truncation implementation or new model run was
 performed for this publication checkpoint. Phase 18 remains closed within its
 scope; Phase 19 live N+1 remains open. Earlier no-commit/no-push statements are
 historical. Runtime captures, indexes, vaults and user state are not published.
+
+## Project-Q&A output repair acceptance - 2026-10-02
+
+The published baseline is 870b2bc. project_qa_service.py now requests 2048 output
+ tokens per agent instead of 200, logs finish_reason/completion_tokens, and
+reports length termination as an incomplete answer. A truncated Analyst draft
+is not forwarded; truncated Reviewer output is not presented as a final answer.
+No automatic continuation/retry was added. Prompts, roles, Runner, routing and
+RAG selection are unchanged; books were not enabled for project Q&A.
+
+Verification: 19 project-Q&A tests passed; focused Ruff passed. Tests cover
+length termination at either agent and unchanged bounded two-agent calls.
+No full suite or Kotlin compilation was run. The test import attempted a
+LiteLLM cost-map fetch and fell back to its local copy; completions were mocked.
+
+Actual Runner menu-2 question:
+`could u show file Navigation.kt ? and answer how navigation work with compose?`
+Selected project: gta-cheats--cc0fe5de; MINI_AGENT_OFFLINE=1. After Ollama became
+available, both Qwen calls finished with finish_reason=stop and 507 output tokens
+each. Final output includes the closed Kotlin code block and a navigation
+explanation; sole source is app/src/main/java/com/gamescheatsapp/navigation/Navigation.kt.
+Snapshot 869a2a9e1d75; exit 0; duration 104.09 seconds. ollama ps is empty afterward.
+Capture: data/offline-acceptance-20261002/navigation-output-ready/{run.json,console.txt}.
+
+Two earlier attempts (navigation-output and navigation-output-live) failed with
+APIConnectionError, exit 1, before any model answer. The first was suspected to
+be sandbox access; escalation did not resolve it. ollama ps then started the
+absent Ollama server, after which the recorded run succeeded. These failed
+attempts are preserved, not counted as successful model runs. The old user's
+finish_reason was not stored, so its exact stop cause remains unconfirmed.
+No GTA source changes/builds, reindexing, historical-state reset, commit or push
+occurred in this follow-up. Phase 19 live N+1 acceptance remains OPEN.
+
+## Final Phase 19 closure record - 2026-10-02
+
+Status: CLOSED locally. The earlier inconclusive attempts remain preserved.
+The breaker implementation was published in 870b2bc; this transport follow-up
+and the preceding project-output-budget fix are not yet committed/pushed.
+
+Diagnosis from installed LiteLLM source: ollama completion tools are mapped to
+JSON prompting (utils.py). Its completion response parser only normalizes
+name/arguments into tool_calls; the saved function/parameters object remains
+content. Native Ollama chat sends tools to /api/chat and reads message.tool_calls.
+The adapter now selects ollama_chat only for non-empty tool requests, using the
+same configured model, localhost endpoint, timeout and routing decision.
+Tool-free completion and embeddings are unchanged. No text-JSON tool execution,
+role edits, Runner edits, authorization changes or policy relaxation was added.
+
+Deterministic command:
+`python -m unittest tests.sandbox.core.test_model_router tests.sandbox.core.test_tool_circuit_breaker tests.sandbox.core.test_runner_tool_persistence tests.sandbox.storage.test_session_lifecycle -q`
+Result: 29 tests passed. Ruff passed for model_router.py and its test module.
+These cover routing, native transport inputs/history, both breaker task modes,
+persistence and session-only reset. The full suite was not run.
+
+Live acceptance used the exact prior six-list_directory task through Runner
+menu 3, MINI_AGENT_OFFLINE=1, fresh profile accept-breaker-native-20261002.
+No mocked responses, reduced limit, seeded tool calls or prompt changes.
+Qwen supplied four native calls, then two more after receiving tool results.
+Exactly five calls were processed; attempted sixth stopped before dispatch.
+Saved status=breaker_blocked, current_turn=coder, agent_steps=1. The incident
+records limit=5, attempted_call_number=6, processed_calls_before_block=5.
+No later agent or model-backed regulator executed. Calls already processed were
+explicitly reported as not rolled back. Run duration 61.25 seconds, CLI exit 0.
+Exit 0 on a blocked task remains a presentation issue; it is not task success.
+
+Actual `python runner.py --resume accept-breaker-native-20261002` rejected the
+blocked task with exit 1. The live state remained byte-for-byte unchanged.
+The live state was not reset: recovery/reset is covered by temporary-profile
+deterministic tests, and documentation mode's limit=3 is likewise deterministic.
+All 19 baseline historical state hashes match. Final ollama ps is empty.
+Evidence: data/offline-acceptance-20261002/breaker-native/run.json, console.txt,
+resume-console.txt and verification.json. These runtime files stay outside Git.
+
+Acceptance is limited to the Phase 19 breaker boundary and recovery contract.
+Full successful code generation, historical duplicate writes, generated-answer
+accuracy and blocked-task CLI exit codes are not declared resolved. No GTA
+source/build, Docker, corpus reindex, historical reset, commit or push occurred.

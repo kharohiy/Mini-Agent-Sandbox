@@ -17,6 +17,25 @@ from project_retrieval import AmbiguousProjectFile
 
 
 class ProjectQaTests(unittest.TestCase):
+    def test_truncated_agent_output_stops_without_retry_or_final_answer(self):
+        for truncated_role, expected_calls in (("analyst", 1), ("reviewer", 2)):
+            with self.subTest(role=truncated_role), tempfile.TemporaryDirectory() as temporary:
+                registry, project, roles_path, digest = self.create_project_fixture(Path(temporary))
+                responses = [SimpleNamespace(choices=[SimpleNamespace(
+                    message=SimpleNamespace(content="partial code"), finish_reason=reason,
+                )]) for reason in (["length"] if expected_calls == 1 else ["stop", "length"])]
+                completion = Mock(side_effect=responses)
+                service = ProjectQaService(
+                    completion=completion, registry=registry, roles_path=roles_path,
+                    project_retriever=lambda *args, **kwargs: [{
+                        "scope": "project-code", "source": "app/MainActivity.kt",
+                        "sha256": digest, "text": "fun main() {}",
+                    }],
+                )
+                with self.assertRaisesRegex(ProjectQaError, truncated_role + " response reached the output limit"):
+                    service.ask(project["id"], "Show the file and explain it")
+                self.assertEqual(completion.call_count, expected_calls)
+
     def test_ambiguous_filename_is_reported_before_any_model_call(self):
         with tempfile.TemporaryDirectory() as temporary:
             registry, project, roles_path, _ = self.create_project_fixture(Path(temporary))
@@ -128,6 +147,7 @@ class ProjectQaTests(unittest.TestCase):
 
     def test_runner_project_qa_cli_unloads_models_after_query(self):
         expected = {
+            "analyst": "draft",
             "reviewer": "answer",
             "snapshot_revision": "c" * 64,
             "sources": ["app/src/main/AndroidManifest.xml"],
@@ -175,6 +195,7 @@ class ProjectQaTests(unittest.TestCase):
 
     def test_runner_project_qa_cli_prints_readable_answer_and_sources(self):
         expected = {
+            "analyst": "Analyst draft.",
             "reviewer": "targetApi is 31.",
             "snapshot_revision": "c" * 64,
             "sources": ["app/src/main/AndroidManifest.xml"],
@@ -187,6 +208,7 @@ class ProjectQaTests(unittest.TestCase):
                     code = runner.run_project_qa_cli()
 
         self.assertEqual(code, 0)
+        self.assertIn("Analyst answer:\nAnalyst draft.", output.getvalue())
         self.assertIn("Answer:\ntargetApi is 31.", output.getvalue())
         self.assertIn("- app/src/main/AndroidManifest.xml", output.getvalue())
 
@@ -246,6 +268,7 @@ class ProjectQaTests(unittest.TestCase):
         self.assertTrue(calls[0][1]["cloud_eligible"])
         self.assertEqual(calls[0][1]["fallback_models"], ["ollama/local"])
         self.assertEqual(calls[1][0][0], "ollama/reviewer")
+        self.assertEqual([call[1]["max_tokens"] for call in calls], [2048, 2048])
 
     def test_project_qa_rejects_stale_snapshot_evidence_before_model_calls(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -366,6 +389,11 @@ class ProjectQaTests(unittest.TestCase):
         self.assertIn("PROJECT EVIDENCE:\nSOURCE: app/MainActivity.kt", completions[0][0][1]["content"])
         self.assertIn("TECHNICAL REFERENCE (explanation only; never evidence of a project fact):", completions[0][0][1]["content"])
         self.assertIn("Project facts require project evidence", completions[0][0][0]["content"])
+        reviewer_prompt = completions[1][0][0]["content"]
+        self.assertIn("cover every part", reviewer_prompt)
+        self.assertIn("trace relevant method calls and state changes", reviewer_prompt)
+        self.assertIn("remove timing, ordering, or guarantee claims", reviewer_prompt)
+        self.assertIn("without evaluating or praising the Analyst", reviewer_prompt)
         self.assertEqual([item[1]["project_id"] for item in completions], [project["id"], project["id"]])
 
 

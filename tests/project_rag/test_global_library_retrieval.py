@@ -77,6 +77,35 @@ class GlobalLibraryRetrievalTests(unittest.TestCase):
             query_embeddings=[[0.1]], n_results=1, include=["documents", "metadatas"],
         )
 
+    def test_same_section_continuation_is_attached_to_selected_chunk(self):
+        client = MagicMock()
+        collection = client.get_collection.return_value
+        collection.count.return_value = 2
+        section = {
+            "source": "Compose.pdf", "Header 1": "Runtime",
+            "Header 3": "Change list", "context": "Runtime | Change list",
+        }
+        collection.query.return_value = {
+            "ids": [["selected"]], "documents": [["Changes are deferred."]],
+            "metadatas": [[section]],
+        }
+        collection.get.return_value = {
+            "ids": ["selected", "continuation"],
+            "documents": [
+                "Changes are deferred.",
+                "After composition finishes, the Applier materializes them.",
+            ],
+            "metadatas": [section, section],
+        }
+        with patch("pathlib.Path.is_file", return_value=True), \
+             patch.object(chromadb, "PersistentClient", return_value=client), \
+             patch("global_library_retrieval.get_default_model_router") as router:
+            router.return_value.embed.return_value = SimpleNamespace(data=[{"embedding": [0.1]}])
+            hits = retrieve_book_references("when are changes applied", top_k=1)
+        self.assertEqual(hits[0]["chunk_ids"], ["selected", "continuation"])
+        self.assertIn("[CONTINUATION]", hits[0]["text"])
+        self.assertIn("After composition finishes", hits[0]["text"])
+
     def test_missing_library_does_not_create_database_or_call_model(self):
         with patch("pathlib.Path.is_file", return_value=False), \
              patch.object(chromadb, "PersistentClient") as constructor, \

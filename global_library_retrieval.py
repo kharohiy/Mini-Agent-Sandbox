@@ -11,6 +11,44 @@ LIBRARY_PATH = Path(__file__).resolve().parent / "data/knowledge/global/chroma_d
 LIBRARY_COLLECTION = "android_architecture_library"
 
 
+def _section_key(metadata):
+    headings = tuple(str(metadata.get(key, "")) for key in (
+        "Header 1", "Header 2", "Header 3",
+    ))
+    return headings if any(headings) else (str(metadata.get("context", "")),)
+
+
+def _with_same_section_continuation(collection, item, cache):
+    """Attach one bounded successor when a book paragraph continues next chunk."""
+    chunk_id, text, metadata = item
+    source = metadata.get("source")
+    if (not isinstance(source, str) or not source.lower().endswith(".pdf")
+            or "/" in source or "\\" in source or metadata.get("project_id")
+            or not metadata.get("context")):
+        return chunk_id, text, metadata, []
+    if source not in cache:
+        result = collection.get(
+            where={"source": source}, include=["documents", "metadatas"],
+        )
+        rows = list(zip(
+            result.get("ids", []), result.get("documents", []),
+            result.get("metadatas", []), strict=True,
+        ))
+        if rows and all(isinstance(row[2].get("chunk_index"), int) for row in rows):
+            rows.sort(key=lambda row: row[2]["chunk_index"])
+        cache[source] = rows
+    rows = cache[source]
+    position = next((index for index, row in enumerate(rows) if row[0] == chunk_id), None)
+    if position is None or position + 1 >= len(rows):
+        return chunk_id, text, metadata, []
+    next_id, next_text, next_metadata = rows[position + 1]
+    if (_section_key(next_metadata) != _section_key(metadata)
+            or not isinstance(next_text, str) or not next_text.strip()):
+        return chunk_id, text, metadata, []
+    combined = text.rstrip() + "\n\n[CONTINUATION]\n" + next_text.lstrip()
+    return chunk_id, combined, metadata, [next_id]
+
+
 def _identifier_hits(collection, question):
     """Find bounded literal evidence for camel-case identifiers missed by vectors."""
     identifiers = list(dict.fromkeys(
@@ -78,7 +116,11 @@ def retrieve_book_references(question, *, top_k=3):
     for item in literal + semantic:
         selected.setdefault(item[0], item)
     references = []
-    for chunk_id, text, metadata in list(selected.values())[:top_k]:
+    source_cache = {}
+    for item in list(selected.values())[:top_k]:
+        chunk_id, text, metadata, continuation_ids = _with_same_section_continuation(
+            collection, item, source_cache,
+        )
         if not isinstance(text, str) or not text.strip() or not isinstance(metadata, dict):
             raise ValueError("Invalid book chunk")
         source = metadata.get("source")
@@ -88,6 +130,7 @@ def retrieve_book_references(question, *, top_k=3):
         excerpt = text[:4000]
         references.append({
             "scope": "global-library", "source": source, "chunk_id": chunk_id,
+            "chunk_ids": [chunk_id, *continuation_ids],
             "text": excerpt, "sha256": hashlib.sha256(excerpt.encode("utf-8")).hexdigest(),
         })
     return references

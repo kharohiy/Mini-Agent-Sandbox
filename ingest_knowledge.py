@@ -80,11 +80,15 @@ def main():
         
         texts = [doc.page_content for doc in batch]
         metadatas = []
-        for doc in batch:
+        for chunk_index, doc in enumerate(batch, start=i):
             # Add headers as context if available
             meta = doc.metadata.copy()
             meta["source"] = book_name
-            context_str = " | ".join([f"{k}: {v}" for k,v in meta.items() if k != "source"])
+            meta["chunk_index"] = chunk_index
+            context_str = " | ".join(
+                f"{key}: {value}" for key, value in meta.items()
+                if key not in {"source", "chunk_index"}
+            )
             if context_str:
                 meta["context"] = context_str
             metadatas.append(meta)
